@@ -3,7 +3,7 @@ class Job {
   int passengerID;
   int pickup; 
   int dest;
-  
+  int tripLength; 
   
   
   Job(int i, int p, int d, int pID) {
@@ -14,6 +14,11 @@ class Job {
   }
   
   
+  
+  void calculateTripLength() {
+     
+    
+  }
   
 }
     

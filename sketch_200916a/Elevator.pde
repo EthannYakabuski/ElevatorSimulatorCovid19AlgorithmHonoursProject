@@ -7,6 +7,9 @@ class Elevator {
   int capacity; 
   int currentLoad;
   
+  //which direction is the cab currently headed
+  Direction direction = Direction.STATIONARY; 
+  
   //how long the elevator door takes to open
   float doorTime; //in seconds
   
@@ -49,7 +52,7 @@ class Elevator {
     
   }
   
-  //getters and setters
+  //getters and setters start
   void setShaftHeight(int h) {
     elevatorShaftHeight = h; 
   }
@@ -67,6 +70,19 @@ class Elevator {
   }
   
   
+  //tickers
+  void tickMaxPass() { if(!(capacity>=20)) { capacity++; } }
+  void tickMaxPassDown() { if(!(capacity==1)) { capacity--; } }
+  
+  
+  void tickCabSpeed() { if(!(floorsPerSecond == 2.000)) { floorsPerSecond = floorsPerSecond + 0.001; } }
+  void tickCabSpeedDown() { if(!(floorsPerSecond == 0.1)) { floorsPerSecond = floorsPerSecond - 0.001; } }
+  
+  
+  void tickDoorSpeed() { if(!(doorTime>=20.000)) { doorTime = doorTime + 0.001; } }
+  void tickDoorSpeedDown() { if(!(doorTime<=1.000)) { doorTime = doorTime - 0.001; } }
+  
+  
   int getFloor() { return floor; }
   int getPassengerNum() { return currentLoad; }
   int getCapacity() { return capacity; }
@@ -74,7 +90,7 @@ class Elevator {
   float getDoorSpeed() { return doorTime; }
   boolean getStatus() { return busy; }
   
-  //getters and setters
+  //getters and setters end
   
   
   //draws the elevator and the shaft that this elevator exists in 
@@ -118,6 +134,13 @@ class Elevator {
     
     
   }
+  
+  
+  void animateDoorOpening() {
+    
+    
+  }
+  
   
   void checkFloor() {
     
@@ -167,7 +190,7 @@ class Elevator {
     
   }
   
-  
+  //moves the cab based on its speed for one frame
   void moveUp() {
     
     System.out.println(cabPosY);
@@ -183,7 +206,7 @@ class Elevator {
     
   }
   
-  
+  //moves the cab based on its speed for one frame
   void moveDown() {
     
     if(!(floor == 1)) {
@@ -191,6 +214,14 @@ class Elevator {
       
       checkFloor();
     }
+    
+    
+    
+  }
+  
+  
+  
+  void move() { 
     
     
     

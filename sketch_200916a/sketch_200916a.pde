@@ -14,13 +14,13 @@ ControlP5 guiControl;
 
 
 //apartment sizes sliders
-int maxFloors = 40; 
+int maxFloors = 30; 
 int minFloors = 2;
 int numFloors = 2; 
 
-int minRoomsPerFloor = 0;
+int minRoomsPerFloor = 1;
 int maxRoomsPerFloor = 30; 
-int roomsPerFloor = 0; 
+int roomsPerFloor = 1; 
 
 int minPopulationPerRoom = 0; 
 int maxPopulationPerRoom = 50; 
@@ -36,6 +36,9 @@ int maxElevatorCapacity = 20;
 int minElevatorCapacity = 1; 
 int elevatorCapacity = 1; 
 
+//this is calculated in seconds. a value of 1.0 means the door opens in one second, and closes in one second as well. 
+//a value of 1.5 means the door opens in 1 second and 50 milliseconds
+//a value of 1.9 means the door opens in 1 second and 90 milliseconds
 float maxElevatorDoorTime = 20.0; 
 float minElevatorDoorTime = 1.0;
 float elevatorDoorTime = 1.0;
@@ -68,6 +71,9 @@ ArrayList<Elevator> elevators = new ArrayList<Elevator>();
 //if the building has been specified yet, activates "live" building mode, where you can see real time adjustments of
 boolean buildingSpecified = false;
 
+//has the simulation started yet?
+boolean simulationStarted = false; 
+
 void setup() {
   
   guiControl = new ControlP5(this);
@@ -89,6 +95,8 @@ void draw() {
   
   drawElevatorInformationPanel();
   
+  drawHighRiseInformationPanel();
+  
   drawBuilding();
   
   drawElevators();
@@ -97,13 +105,19 @@ void draw() {
   
 }
 
+void startSimulation() {
+  
+  System.out.println("Starting simulation"); 
+  
+  
+}
+
+
 void moveElevators() {
   
   for(int i = 0; i < elevators.size(); i++) {
     if(!(elevators.get(i).busy)) {
-       elevators.get(i).moveUp();
-      
-      
+       elevators.get(i).move();
     }
     
   }
@@ -119,7 +133,7 @@ void drawDeveloperControlsBackground() {
    rect(1350,450,500,1200);
    
    
-   //draw the building button
+   //draw the 'spawn elevators' button
    fill(#F0112F);
    rect(1300,875,buttonSizeWidth,buttonSizeHeight);
    
@@ -127,6 +141,14 @@ void drawDeveloperControlsBackground() {
    textSize(12); 
    text("SPAWN ELEVATORS", 1245, 880);
   
+  
+   //draw the 'run simulation' button
+   fill(#F0112F);
+   rect(1500,875,buttonSizeWidth,buttonSizeHeight);
+   
+   fill(0); 
+   textSize(12); 
+   text("START SIMULATION", 1445, 880); 
 }
 
 void drawElevatorInformationPanel() {
@@ -136,7 +158,118 @@ void drawElevatorInformationPanel() {
    rect(600,0,1100,320);
    
    drawElevatorTextInfo(); 
-   
+   drawElevatorFineTuneControls();
+  
+}
+
+void drawHighRiseInformationPanel() {
+  
+  fill(0); 
+  textSize(12); 
+  strokeWeight(5);
+  text("FLOOR",60,60);
+  
+  rectMode(CORNERS); 
+  fill(255); 
+  
+  rect(0,0,590,420);
+  
+  drawGrid();
+  
+}
+
+void drawGrid() {
+  
+  System.out.println("drawing grid");
+  
+  //text 
+  fill(#EFF018);
+  fill(0); 
+  textSize(10);
+  text("Room", 0, 10); 
+  text("Floor", 0, 20); 
+  
+  //draw the grid rooms numbers
+  for(int i = 0; i < roomsPerFloor; i++) {
+    text(i, 33+i*17, 10);
+    
+  }
+  
+  //draw the grid floor numbers
+  for(int i = 0; i < numFloors; i++) {
+    text(i, 10, 32+i*13);
+    
+  }
+  
+  
+  
+  fill(0); 
+  stroke(0); 
+  strokeWeight(1);
+  
+  //vertical lines
+  line(30,0,30,20+numFloors*13);
+  for(int i = 0; i < roomsPerFloor; i++) {
+     line(47+i*17,0,47+i*17,20+numFloors*13);
+     
+    
+  }
+  
+
+  //horizontal lines
+  line(0,22,30+roomsPerFloor*17,22);
+  for(int i = 0; i < numFloors; i++) {
+     line(0,35+i*13,30+roomsPerFloor*17,35+i*13);
+    
+  }
+  
+ 
+  
+  noStroke();
+  
+}
+
+void drawElevatorFineTuneControls() {
+  rectMode(CORNERS); 
+  
+  for(int i = 0; i < elevators.size(); i++) {
+    
+    //controls for the max passenger information
+    fill(#EFF018); 
+    rect(860,17+i*37,890,32+i*37);
+    fill(0); 
+    textSize(10); 
+    text("Up", 862, 27+i*37);
+    fill(#FA0505);
+    rect(860,33+i*37,890,48+i*37);
+    fill(0); 
+    text("Down", 862, 43+i*37);
+    
+    //controls for the cab speed information
+    fill(#EFF018); 
+    rect(940,17+i*37,970,32+i*37);
+    fill(0); 
+    textSize(10); 
+    text("Up", 942, 27+i*37);
+    fill(#FA0505);
+    rect(940,33+i*37,970,48+i*37);
+    fill(0); 
+    text("Down", 942, 43+i*37);
+    
+    //controls for the door speed information
+    fill(#EFF018); 
+    rect(1017,17+i*37,1047,32+i*37);
+    fill(0); 
+    textSize(10); 
+    text("Up", 1019, 27+i*37);
+    fill(#FA0505);
+    rect(1017,33+i*37,1047,48+i*37);
+    fill(0); 
+    text("Down", 1019, 43+i*37);
+    
+  }
+  
+  
   
 }
 
@@ -244,6 +377,7 @@ void calculateShaftDimensions() {
 void makeElevators() {
   calculateShaftDimensions();
   
+  System.out.println("Making elevator objects");
   
   elevators.clear();
 
@@ -315,6 +449,8 @@ void setupGuiElements() {
    
 }
 
+
+//button listeners
 void mousePressed() {
   
   
@@ -324,7 +460,7 @@ void mousePressed() {
   
   
   //the user has clicked within the build building button
-  if(mouseX>=1250 & mouseX <=1350) {
+  if(mouseX>=1225 & mouseX <=1375) {
     
     if(mouseY>=850 & mouseY <=900) {
       
@@ -335,5 +471,314 @@ void mousePressed() {
     }
       
     }
+    
+  //the user has clicked within the start simulation button
+  if(mouseX>=1425 & mouseX <=1575) {
+    
+    if(mouseY>=850 & mouseY <=900) {
+      
+      simulationStarted = true; 
+      startSimulation();
+      
+    }
+    
+    
+  }
+    
+  //user has clicked within the fine tuning elevator section
+  if(mouseX>800 & mouseX <1100) {
+     
+    
+    //adjusting max passenger size
+     if(mouseX>=860 & mouseX<=890) {
+       
+       //user has clicked elevator 0's up button for max passenger information
+       if(mouseY>=17 & mouseY <=32) {
+         if(elevators.size() >= 1) { elevators.get(0).tickMaxPass(); }
+       }
+       
+        //user has clicked elevator 0's down button for max passenger information
+       if(mouseY>=33 & mouseY <=48) {
+         if(elevators.size() >= 1) { elevators.get(0).tickMaxPassDown(); }
+       }
+       
+       
+       //user has clicked elevator 1's up button for max passenger information
+       if(mouseY>=54 & mouseY <=69) {
+         if(elevators.size() >= 2) { elevators.get(1).tickMaxPass(); }
+       }
+       
+        //user has clicked elevator 1's down button for max passenger information
+       if(mouseY>=70 & mouseY <=85) {
+         if(elevators.size() >= 2) { elevators.get(1).tickMaxPassDown(); }
+       }
+       
+       
+       //user has clicked elevator 2's up button for max passenger information
+       if(mouseY>=91 & mouseY <=106) {
+         if(elevators.size() >= 3) { elevators.get(2).tickMaxPass(); }
+       }
+       
+        //user has clicked elevator 2's down button for max passenger information
+       if(mouseY>=107 & mouseY <=122) {
+         if(elevators.size() >= 3) { elevators.get(2).tickMaxPassDown(); }
+       }
+       
+       
+       //user has clicked elevator 3's up button for max passenger information
+       if(mouseY>=128 & mouseY <=143) {
+         if(elevators.size() >= 4) { elevators.get(3).tickMaxPass(); }
+       }
+       
+        //user has clicked elevator 3's down button for max passenger information
+       if(mouseY>=144 & mouseY <=159) {
+         if(elevators.size() >= 4) { elevators.get(3).tickMaxPassDown(); }
+       }
+       
+       
+       //user has clicked elevator 4's up button for max passenger information
+       if(mouseY>=165 & mouseY <=180) {
+         if(elevators.size() >= 5) { elevators.get(4).tickMaxPass(); }
+       }
+       
+        //user has clicked elevator 4's down button for max passenger information
+       if(mouseY>=181 & mouseY <=196) {
+         if(elevators.size() >= 5) { elevators.get(4).tickMaxPassDown(); }
+       }
+       
+       
+       //user has clicked elevator 5's up button for max passenger information
+       if(mouseY>=202 & mouseY <=217) {
+         if(elevators.size() >= 6) { elevators.get(5).tickMaxPass(); }
+       }
+       
+        //user has clicked elevator 5's down button for max passenger information
+       if(mouseY>=218 & mouseY <=233) {
+         if(elevators.size() >= 6) { elevators.get(5).tickMaxPassDown(); }
+       }
+       
+       
+       //user has clicked elevator 6's up button for max passenger information
+       if(mouseY>=239 & mouseY <=254) {
+         if(elevators.size() >= 6) { elevators.get(6).tickMaxPass(); }
+       }
+       
+        //user has clicked elevator 6's down button for max passenger information
+       if(mouseY>=255 & mouseY <=270) {
+         if(elevators.size() >= 6) { elevators.get(6).tickMaxPassDown(); }
+       }
+       
+       
+       //user has clicked elevator 7's up button for max passenger information
+       if(mouseY>=276 & mouseY <=291) {
+         if(elevators.size() >= 7) { elevators.get(7).tickMaxPass(); }
+       }
+       
+        //user has clicked elevator 7's down button for max passenger information
+       if(mouseY>=292 & mouseY <=307) {
+         if(elevators.size() >= 7) { elevators.get(7).tickMaxPassDown(); }
+       }
+       
+       
+     }
+     
+     
+     
+     //adjusting cab speed information
+     if(mouseX>=940 & mouseX<=970) {
+       
+       
+       //user has clicked elevator 0's up button for cab speed information
+       if(mouseY>=17 & mouseY <=32) {
+         if(elevators.size() >= 1) { elevators.get(0).tickCabSpeed(); }
+       }
+       
+        //user has clicked elevator 0's down button for cab speed information
+       if(mouseY>=33 & mouseY <=48) {
+         if(elevators.size() >= 1) { elevators.get(0).tickCabSpeedDown(); }
+       }
+       
+       
+       //user has clicked elevator 1's up button for cab speed information
+       if(mouseY>=54 & mouseY <=69) {
+         if(elevators.size() >= 2) { elevators.get(1).tickCabSpeed(); }
+       }
+       
+        //user has clicked elevator 1's down button for cab speed information
+       if(mouseY>=70 & mouseY <=85) {
+         if(elevators.size() >= 2) { elevators.get(1).tickCabSpeedDown(); }
+       }
+       
+       
+       //user has clicked elevator 2's up button for cab speed information
+       if(mouseY>=91 & mouseY <=106) {
+         if(elevators.size() >= 3) { elevators.get(2).tickCabSpeed(); }
+       }
+       
+        //user has clicked elevator 2's down button for cab speed information
+       if(mouseY>=107 & mouseY <=122) {
+         if(elevators.size() >= 3) { elevators.get(2).tickCabSpeedDown(); }
+       }
+       
+       
+       //user has clicked elevator 3's up button for cab speed information
+       if(mouseY>=128 & mouseY <=143) {
+         if(elevators.size() >= 4) { elevators.get(3).tickCabSpeed(); }
+       }
+       
+        //user has clicked elevator 3's down button for cab speed information
+       if(mouseY>=144 & mouseY <=159) {
+         if(elevators.size() >= 4) { elevators.get(3).tickCabSpeedDown(); }
+       }
+       
+       
+       //user has clicked elevator 4's up button for cab speed information
+       if(mouseY>=165 & mouseY <=180) {
+         if(elevators.size() >= 5) { elevators.get(4).tickCabSpeed(); }
+       }
+       
+        //user has clicked elevator 4's down button for cab speed information
+       if(mouseY>=181 & mouseY <=196) {
+         if(elevators.size() >= 5) { elevators.get(4).tickCabSpeedDown(); }
+       }
+       
+       
+       //user has clicked elevator 5's up button for cab speed information
+       if(mouseY>=202 & mouseY <=217) {
+         if(elevators.size() >= 6) { elevators.get(5).tickCabSpeed(); }
+       }
+       
+        //user has clicked elevator 5's down button for cab speed information
+       if(mouseY>=218 & mouseY <=233) {
+         if(elevators.size() >= 6) { elevators.get(5).tickCabSpeedDown(); }
+       }
+       
+       
+       //user has clicked elevator 6's up button for cab speed information
+       if(mouseY>=239 & mouseY <=254) {
+         if(elevators.size() >= 6) { elevators.get(6).tickCabSpeed(); }
+       }
+       
+        //user has clicked elevator 6's down button for cab speed information
+       if(mouseY>=255 & mouseY <=270) {
+         if(elevators.size() >= 6) { elevators.get(6).tickCabSpeedDown(); }
+       }
+       
+       
+       //user has clicked elevator 7's up button for cab speed information
+       if(mouseY>=276 & mouseY <=291) {
+         if(elevators.size() >= 7) { elevators.get(7).tickCabSpeed(); }
+       }
+       
+        //user has clicked elevator 7's down button for cab speed information
+       if(mouseY>=292 & mouseY <=307) {
+         if(elevators.size() >= 7) { elevators.get(7).tickCabSpeedDown(); }
+       }
+       
+       
+       
+     }
+     
+     
+     //adjusting door speed information
+     if(mouseX>=1017 & mouseX<=1047) {
+       
+       //user has clicked elevator 0's up button for cab speed information
+       if(mouseY>=17 & mouseY <=32) {
+         if(elevators.size() >= 1) { elevators.get(0).tickDoorSpeed(); }
+       }
+       
+        //user has clicked elevator 0's down button for cab speed information
+       if(mouseY>=33 & mouseY <=48) {
+         if(elevators.size() >= 1) { elevators.get(0).tickDoorSpeedDown(); }
+       }
+       
+       
+       //user has clicked elevator 1's up button for cab speed information
+       if(mouseY>=54 & mouseY <=69) {
+         if(elevators.size() >= 2) { elevators.get(1).tickDoorSpeed(); }
+       }
+       
+        //user has clicked elevator 1's down button for cab speed information
+       if(mouseY>=70 & mouseY <=85) {
+         if(elevators.size() >= 2) { elevators.get(1).tickDoorSpeedDown(); }
+       }
+       
+       
+       //user has clicked elevator 2's up button for cab speed information
+       if(mouseY>=91 & mouseY <=106) {
+         if(elevators.size() >= 3) { elevators.get(2).tickDoorSpeed(); }
+       }
+       
+        //user has clicked elevator 2's down button for cab speed information
+       if(mouseY>=107 & mouseY <=122) {
+         if(elevators.size() >= 3) { elevators.get(2).tickDoorSpeedDown(); }
+       }
+       
+       
+       //user has clicked elevator 3's up button for cab speed information
+       if(mouseY>=128 & mouseY <=143) {
+         if(elevators.size() >= 4) { elevators.get(3).tickDoorSpeed(); }
+       }
+       
+        //user has clicked elevator 3's down button for cab speed information
+       if(mouseY>=144 & mouseY <=159) {
+         if(elevators.size() >= 4) { elevators.get(3).tickDoorSpeedDown(); }
+       }
+       
+       
+       //user has clicked elevator 4's up button for cab speed information
+       if(mouseY>=165 & mouseY <=180) {
+         if(elevators.size() >= 5) { elevators.get(4).tickDoorSpeed(); }
+       }
+       
+        //user has clicked elevator 4's down button for cab speed information
+       if(mouseY>=181 & mouseY <=196) {
+         if(elevators.size() >= 5) { elevators.get(4).tickDoorSpeedDown(); }
+       }
+       
+       
+       //user has clicked elevator 5's up button for cab speed information
+       if(mouseY>=202 & mouseY <=217) {
+         if(elevators.size() >= 6) { elevators.get(5).tickDoorSpeed(); }
+       }
+       
+        //user has clicked elevator 5's down button for cab speed information
+       if(mouseY>=218 & mouseY <=233) {
+         if(elevators.size() >= 6) { elevators.get(5).tickDoorSpeedDown(); }
+       }
+       
+       
+       //user has clicked elevator 6's up button for cab speed information
+       if(mouseY>=239 & mouseY <=254) {
+         if(elevators.size() >= 6) { elevators.get(6).tickDoorSpeed(); }
+       }
+       
+        //user has clicked elevator 6's down button for cab speed information
+       if(mouseY>=255 & mouseY <=270) {
+         if(elevators.size() >= 6) { elevators.get(6).tickDoorSpeedDown(); }
+       }
+       
+       
+       //user has clicked elevator 7's up button for cab speed information
+       if(mouseY>=276 & mouseY <=291) {
+         if(elevators.size() >= 7) { elevators.get(7).tickDoorSpeed(); }
+       }
+       
+        //user has clicked elevator 7's down button for cab speed information
+       if(mouseY>=292 & mouseY <=307) {
+         if(elevators.size() >= 7) { elevators.get(7).tickDoorSpeedDown(); }
+       }
+       
+       
+       
+       
+       
+       
+     }
+    
+    
+  }
+   
  
 }

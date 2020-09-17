@@ -1,6 +1,10 @@
 # ElevatorSimulator-Covid19Algorithm-HonoursProject
 
 (In development)
+
+To download processing: https://processing.org/download/
+
+
 Features: 
 
 Highrise building elevator simulator, simulates custom building dimensions up to 30 rooms x 40 floors. Adjust population of each room individually on the GUI or using customized scripts with a few formatting restrictions, or use quick populate function sliders for an even distribution of tenants. 

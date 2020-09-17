@@ -6,6 +6,11 @@ class Job {
   int tripLength; 
   
   
+  Job() {
+    
+    
+  }
+  
   Job(int i, int p, int d, int pID) {
    id = i; 
    pickup = p; 

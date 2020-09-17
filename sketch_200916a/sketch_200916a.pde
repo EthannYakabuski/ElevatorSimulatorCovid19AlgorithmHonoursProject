@@ -12,6 +12,9 @@ int height = 950;
 
 ControlP5 guiControl; 
 
+//the building object
+Building highRise;
+
 
 //apartment sizes sliders
 int maxFloors = 30; 
@@ -70,6 +73,10 @@ ArrayList<Elevator> elevators = new ArrayList<Elevator>();
 
 //if the building has been specified yet, activates "live" building mode, where you can see real time adjustments of
 boolean buildingSpecified = false;
+
+
+//
+boolean buildingObjectsCreated = false; 
 
 //has the simulation started yet?
 boolean simulationStarted = false; 
@@ -132,6 +139,14 @@ void drawDeveloperControlsBackground() {
    //nice blue behind the slider bars
    rect(1350,450,500,1200);
    
+   //draw the 'spawn building' button
+   fill(#F0112F);
+   rect(1300,810,buttonSizeWidth,buttonSizeHeight);
+   
+   fill(0); 
+   textSize(12); 
+   text("SPAWN BUILDING", 1245, 815); 
+   
    
    //draw the 'spawn elevators' button
    fill(#F0112F);
@@ -140,7 +155,7 @@ void drawDeveloperControlsBackground() {
    fill(0);
    textSize(12); 
    text("SPAWN ELEVATORS", 1245, 880);
-  
+   
   
    //draw the 'run simulation' button
    fill(#F0112F);
@@ -180,7 +195,7 @@ void drawHighRiseInformationPanel() {
 
 void drawGrid() {
   
-  System.out.println("drawing grid");
+  //System.out.println("drawing grid");
   
   //text 
   fill(#EFF018);
@@ -311,6 +326,8 @@ void drawElevatorTextInfo() {
   
 }
 
+
+
 void drawBuilding() {
   
   for(int i = 0; i < numFloors; i++) {
@@ -373,7 +390,7 @@ void calculateShaftDimensions() {
 }
 
 
-//this function is responsible for object creation of the elevators given the information on the sliders when the build building button is hit
+//this function is responsible for object creation of the elevators given the information on the sliders when the spawn elevators button is hit
 void makeElevators() {
   calculateShaftDimensions();
   
@@ -387,10 +404,41 @@ void makeElevators() {
     
   }
  
+}
+
+
+//this function is responsible for object creation of the building, rooms and tenant lists given the information on the sliders when the build building button is hit
+void makeBuildingObjects() {
+ 
   
-  
+  for(int floor = 0; floor < numFloors; floor++) {
+    
+   
+    for(int room = 0; room < roomsPerFloor; room++) {
+      
+     
+      
+      for(int tenant = 0; tenant < roomPopulation; tenant++) {
+        
+        
+        
+      }
+      
+    }
+    
+    
+  }
   
 }
+        
+        
+       
+    
+    
+  
+  
+  
+  
 
 
 //initial setup for the developer GUI controls this is only to be run once in setup()
@@ -459,7 +507,7 @@ void mousePressed() {
   
   
   
-  //the user has clicked within the build building button
+  //the user has clicked within the spawn elevators button
   if(mouseX>=1225 & mouseX <=1375) {
     
     if(mouseY>=850 & mouseY <=900) {
@@ -484,6 +532,20 @@ void mousePressed() {
     
     
   }
+  
+  //the user has click withing the spawn building button
+  if(mouseX>=1225 & mouseX <=1375) {
+    
+    if(mouseY>=785 & mouseY <=835) {
+      
+      
+    }
+      
+    }
+  
+  
+  
+  
     
   //user has clicked within the fine tuning elevator section
   if(mouseX>800 & mouseX <1100) {

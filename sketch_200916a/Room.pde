@@ -3,6 +3,9 @@ class Room {
   
   int roomID;
   
+  
+  
+  
   ArrayList<Person> tenants = new ArrayList<Person>();
   
   Room() {

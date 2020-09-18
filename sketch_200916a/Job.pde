@@ -7,7 +7,10 @@ class Job {
   
   
   Job() {
-    
+   id = 0; 
+   pickup = 0; 
+   dest = 0; 
+   passengerID = 0;
     
   }
   
@@ -20,10 +23,12 @@ class Job {
   
   
   
-  void calculateTripLength() {
-     
+  int calculateTripLength() {
+      return abs(pickup-dest);
     
   }
+  
+  
   
 }
     

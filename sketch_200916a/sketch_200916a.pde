@@ -12,6 +12,15 @@ int height = 950;
 
 ControlP5 guiControl; 
 
+Slider amountOfFloors; 
+Slider amountOfRooms; 
+Slider amountOfPopulation;
+Slider amountOfElevators; 
+Slider amountOfDoorTime; 
+Slider amountOfCabSpeed; 
+Slider amountOfCabCapacity; 
+Slider amountOfSimulationTime;
+
 //the building object
 Building highRise = new Building();
 
@@ -55,6 +64,9 @@ float elevatorSpeed = 0.1; //floors per second
 int maxMinutes = 1440; 
 int minMinutes = 1; 
 int simulationRunTime = 1; 
+
+//simulation speed slider
+
 
 //variables for defining the sliders in the developer GUI section
 int sliderSizeHeight = 20; 
@@ -117,7 +129,16 @@ void draw() {
   moveElevators();
   
   
- 
+  //if(buildingObjectsCreated) { testQueue(); }
+  
+}
+
+void testQueue() {
+  
+  //turn the bottom most left room red by adding a job to one of the tenants
+  highRise.floors.get(0).getRoomFromIndex(0).getTenant(0).setJob(new Job(0,0,8,1000));
+  
+  
   
 }
 
@@ -162,6 +183,7 @@ void drawDeveloperControlsBackground() {
    //nice blue behind the slider bars
    rect(1350,450,500,1200);
    
+   /*
    //draw the 'spawn building' button
    fill(#F0112F);
    rect(1300,810,buttonSizeWidth,buttonSizeHeight);
@@ -178,7 +200,7 @@ void drawDeveloperControlsBackground() {
    fill(0);
    textSize(12); 
    text("SPAWN ELEVATORS", 1245, 880);
-   
+   */
   
    //draw the 'run simulation' button
    fill(#F0112F);
@@ -372,12 +394,27 @@ void drawBuilding() {
     
   }
   
+  //draw the windows
   for(int x = 0; x < roomsPerFloor; x++) {
       
     for(int y = 0; y < numFloors; y++) { 
      
+      
       rectMode(CENTER); 
       fill(#F2F21D);
+      
+      
+      if(buildingObjectsCreated) {
+        
+        if(highRise.getRoomStatus(y,x) > 0) {
+          //red window indicates that someone from that room is queuing for the elevator
+           fill(255,0,0); 
+        } else {
+           fill(#F2F21D);
+        }
+        
+      }
+      
       
       rect(20+(x*20),945-(y*15), 5, 5);
     }
@@ -432,6 +469,9 @@ void makeElevators() {
 
 //this function is responsible for object creation of the building, rooms and tenant lists given the information on the sliders when the build building button is hit
 void makeBuildingObjects() {
+  System.out.println("making building objects");
+  
+  
   
   buildingObjectsCreated = true;
   
@@ -465,67 +505,127 @@ void makeBuildingObjects() {
   
   } //floors
   
-  
+  makeElevators();
   
 } //object created done
         
         
-       
-    
-    
-  
-  
-  
-  
 
 
 //initial setup for the developer GUI controls this is only to be run once in setup()
 void setupGuiElements() {
   //adding apartment creation sliders to the developer interface
   
-  guiControl.addSlider("numFloors")
+  amountOfFloors = guiControl.addSlider("numFloors")
     .setPosition(1500,50)
     .setSize(sliderSizeHeight,sliderSizeWidth)
     .setRange(minFloors,maxFloors)
     .setValue(numFloors);
+  
+  amountOfFloors.onChange(new CallbackListener() {
     
-  guiControl.addSlider("roomsPerFloor")
+    public void controlEvent(CallbackEvent theEvent) {
+      
+      makeBuildingObjects();
+      
+    }
+  });
+    
+    
+  amountOfRooms = guiControl.addSlider("roomsPerFloor")
     .setPosition(1400,50)
     .setSize(sliderSizeHeight,sliderSizeWidth)
     .setRange(minRoomsPerFloor,maxRoomsPerFloor)
     .setValue(roomsPerFloor);
     
-  guiControl.addSlider("roomPopulation")
+  amountOfRooms.onChange(new CallbackListener() {
+    
+    public void controlEvent(CallbackEvent theEvent) {
+      
+      makeBuildingObjects();
+      
+    }
+  });
+  
+  
+  amountOfPopulation = guiControl.addSlider("roomPopulation")
     .setPosition(1300,50)
     .setSize(sliderSizeHeight,sliderSizeWidth)
     .setRange(minPopulationPerRoom,maxPopulationPerRoom)
     .setValue(roomPopulation);
     
-  guiControl.addSlider("numElevators")
+    amountOfPopulation.onChange(new CallbackListener() {
+    
+    public void controlEvent(CallbackEvent theEvent) {
+      
+      makeBuildingObjects();
+      
+    }
+  });
+  
+    
+  amountOfElevators = guiControl.addSlider("numElevators")
     .setPosition(1500,300)
     .setSize(sliderSizeHeight,sliderSizeWidth)
     .setRange(minElevators,maxElevators)
     .setValue(numElevators);
     
-  guiControl.addSlider("elevatorCapacity")
+    amountOfElevators.onChange(new CallbackListener() {
+    
+    public void controlEvent(CallbackEvent theEvent) {
+      
+      makeElevators();
+      
+    }
+  });
+    
+  amountOfCabCapacity = guiControl.addSlider("elevatorCapacity")
     .setPosition(1400,300)
     .setSize(sliderSizeHeight,sliderSizeWidth)
     .setRange(minElevatorCapacity,maxElevatorCapacity)
     .setValue(elevatorCapacity);
+    
+    
+    amountOfCabCapacity.onChange(new CallbackListener() {
+    
+    public void controlEvent(CallbackEvent theEvent) {
+      
+      makeElevators();
+      
+    }
+  });
        
-  guiControl.addSlider("elevatorDoorTime")
+  amountOfDoorTime = guiControl.addSlider("elevatorDoorTime")
     .setPosition(1300,300)
     .setSize(sliderSizeHeight,sliderSizeWidth)
     .setRange(minElevatorDoorTime,maxElevatorDoorTime)
     .setValue(elevatorDoorTime);
     
-  guiControl.addSlider("elevatorSpeed")
+    amountOfDoorTime.onChange(new CallbackListener() {
+    
+    public void controlEvent(CallbackEvent theEvent) {
+      
+      makeElevators();
+      
+    }
+  });
+    
+  amountOfCabSpeed = guiControl.addSlider("elevatorSpeed")
     .setPosition(1200,300)
     .setSize(sliderSizeHeight,sliderSizeWidth)
     .setRange(minElevatorSpeed,maxElevatorSpeed)
     .setValue(elevatorSpeed);
     
-  guiControl.addSlider("simulationRunTime")
+    amountOfCabSpeed.onChange(new CallbackListener() {
+    
+    public void controlEvent(CallbackEvent theEvent) {
+      
+      makeElevators();
+      
+    }
+  });
+    
+  amountOfSimulationTime = guiControl.addSlider("simulationRunTime")
     .setPosition(1500,550)
     .setSize(sliderSizeHeight,sliderSizeWidth)
     .setRange(minMinutes,maxMinutes)

@@ -5,6 +5,8 @@ class Person {
   int personID;
   String name; 
   
+  //if job tripLength is 0 this means that there is no job
+  //if the job tripLength is > 0, then this person is queuing for the elevator
   Job currentTask = new Job();
   
   boolean ridingInElevator = false;
@@ -30,11 +32,20 @@ class Person {
     return currentTask; 
   }
   
+  int getJobLength() {
+    
+    
+    return currentTask.calculateTripLength();
+    
+  }
+  
   
   String attendanceCall() {
     
     
     return str(personID); 
   }
+  
+  
   
 }

@@ -55,5 +55,13 @@ class Floor {
   }
   
   
+  Room getRoomFromIndex(int r) {
+    
+    return rooms.get(r);
+    
+    
+  }
+  
+  
   
 }

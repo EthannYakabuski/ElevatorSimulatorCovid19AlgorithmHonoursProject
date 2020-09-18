@@ -54,9 +54,9 @@ class Building {
      for(int room = 0; room < numRooms; room++) {
       
        
-       for(int population = 0; population < floors.get(floor).getRoom(room).getSize(); population++) {
+       for(int population = 0; population < floors.get(floor).getRoomFromIndex(room).getSize(); population++) {
          
-         tenantString += floors.get(floor).getRoom(room).getTenant(population).attendanceCall();
+         tenantString += floors.get(floor).getRoomFromIndex(room).getTenant(population).attendanceCall();
          
          
          
@@ -71,7 +71,20 @@ class Building {
   }
   
   
-  
+  int getRoomStatus(int floor, int room) {
+    
+    int returnValue = 0; 
+    
+    
+    for(int i = 0; i < floors.get(floor).getRoomFromIndex(room).getSize(); i++) {
+      
+       returnValue+=floors.get(floor).getRoomFromIndex(room).getTenant(i).getJobLength();
+      
+      
+    }
+    
+    return returnValue;
+  }
   
   
     

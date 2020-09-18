@@ -2,10 +2,15 @@ class Elevator {
   
   //arraylist for the 
   ArrayList<Job> serviceQueue = new ArrayList<Job>();
+  
+  ArrayList<Person> cabPassengers = new ArrayList<Person>();
  
   //elevator cab capacity and how many passengers are currently in the cab
   int capacity; 
   int currentLoad;
+  
+  
+  
   
   //which direction is the cab currently headed
   Direction direction = Direction.STATIONARY; 

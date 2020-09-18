@@ -35,7 +35,7 @@ class Floor {
     //if the requested room has not yet been created, create it and add to the backing arraylist
     //note that this if statement will only be run on each new tenant ONCE per room
     if(rooms.size() <= room) {
-      rooms.add(new Room(room));
+      rooms.add(new Room(new Coordinate(room,floorID)));
       
     }
     

@@ -1,5 +1,7 @@
 class Person {
   
+ 
+  
   int personID;
   String name; 
   
@@ -14,6 +16,8 @@ class Person {
     personID = pID; 
     floor = fl; 
     room = ro;
+    
+   
   }
   
   
@@ -27,5 +31,10 @@ class Person {
   }
   
   
+  String attendanceCall() {
+    
+    
+    return str(personID); 
+  }
   
 }

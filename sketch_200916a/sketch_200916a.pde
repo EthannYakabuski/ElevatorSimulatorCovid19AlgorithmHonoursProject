@@ -13,7 +13,7 @@ int height = 950;
 ControlP5 guiControl; 
 
 //the building object
-Building highRise;
+Building highRise = new Building();
 
 
 //apartment sizes sliders
@@ -25,9 +25,9 @@ int minRoomsPerFloor = 1;
 int maxRoomsPerFloor = 30; 
 int roomsPerFloor = 1; 
 
-int minPopulationPerRoom = 0; 
+int minPopulationPerRoom = 1; 
 int maxPopulationPerRoom = 50; 
-int roomPopulation = 0; 
+int roomPopulation = 1; 
 
 
 //elevator sizes sliders
@@ -68,6 +68,9 @@ int buttonSizeWidth = 150;
 int shaftHeight = 0; 
 int shaftWidth = 0; 
 
+//master variable making person ID's unique
+int personIDGlobal = 1000;
+
 //list holding the elevators needed
 ArrayList<Elevator> elevators = new ArrayList<Elevator>();
 
@@ -75,7 +78,7 @@ ArrayList<Elevator> elevators = new ArrayList<Elevator>();
 boolean buildingSpecified = false;
 
 
-//
+//have building objects been created yet?
 boolean buildingObjectsCreated = false; 
 
 //has the simulation started yet?
@@ -89,10 +92,11 @@ void setup() {
   smooth();
   noStroke();
   
-  frameRate(15); //thirty frames / second
+  frameRate(15); //fifteen frames / second - real time
   
   setupGuiElements();
 }
+
 
 void draw() {
   fill(0);
@@ -101,14 +105,19 @@ void draw() {
   drawDeveloperControlsBackground();
   
   drawElevatorInformationPanel();
-  
   drawHighRiseInformationPanel();
+  drawRoomSpecificSelectorPanel();
   
-  drawBuilding();
+  
+  
+  if(buildingObjectsCreated) { drawBuilding(); }
+  
   
   drawElevators();
-  
   moveElevators();
+  
+  
+ 
   
 }
 
@@ -132,6 +141,20 @@ void moveElevators() {
   
   
 }
+
+void drawRoomSpecificSelectorPanel() {
+  
+  rectMode(CORNERS); 
+  fill(255); //white
+  
+  rect(600, 330, 1100, 480);
+  
+  fill(0);
+  textSize(12); 
+  text("ROOM VIEWER", 600, 345);
+  
+}
+
 
 void drawDeveloperControlsBackground() {
    rectMode(CENTER); 
@@ -409,10 +432,20 @@ void makeElevators() {
 
 //this function is responsible for object creation of the building, rooms and tenant lists given the information on the sliders when the build building button is hit
 void makeBuildingObjects() {
- 
+  
+  buildingObjectsCreated = true;
+  
+  highRise.setNumFloors(numFloors); 
+  highRise.setNumRooms(roomsPerFloor);
+  
+  System.out.println("numFloors: "+numFloors); 
+  System.out.println("roomsPerFloor: "+roomsPerFloor); 
+  System.out.println("roomPopulation: "+roomPopulation); 
+  
   
   for(int floor = 0; floor < numFloors; floor++) {
     
+   
    
     for(int room = 0; room < roomsPerFloor; room++) {
       
@@ -420,16 +453,21 @@ void makeBuildingObjects() {
       
       for(int tenant = 0; tenant < roomPopulation; tenant++) {
         
+        //System.out.println("Making a new person and adding to the highrise");
+        highRise.addTenant(new Person(personIDGlobal++,floor,room), floor, room); 
         
         
-      }
+      } //tenants
       
-    }
+   
+    } //rooms
     
-    
-  }
   
-}
+  } //floors
+  
+  
+  
+} //object created done
         
         
        
@@ -502,8 +540,8 @@ void setupGuiElements() {
 void mousePressed() {
   
   
-  System.out.println(mouseX); 
-  System.out.println(mouseY); 
+  //System.out.println(mouseX); 
+  //System.out.println(mouseY); 
   
   
   
@@ -537,7 +575,8 @@ void mousePressed() {
   if(mouseX>=1225 & mouseX <=1375) {
     
     if(mouseY>=785 & mouseY <=835) {
-      
+        makeBuildingObjects(); 
+       
       
     }
       

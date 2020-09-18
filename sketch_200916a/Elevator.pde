@@ -220,7 +220,7 @@ class Elevator {
   }
   
   
-  
+  //determines the orientation of the elevator and decides whether to call moveUP() or moveDown()
   void move() { 
     
     

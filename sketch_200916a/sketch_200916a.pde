@@ -96,6 +96,10 @@ boolean buildingObjectsCreated = false;
 //has the simulation started yet?
 boolean simulationStarted = false; 
 
+//inidication of if the room panel has been used yet
+boolean roomPanel = false;
+Room showcaseRoom = new Room();
+
 void setup() {
   
   guiControl = new ControlP5(this);
@@ -118,15 +122,17 @@ void draw() {
   
   drawElevatorInformationPanel();
   drawHighRiseInformationPanel();
-  drawRoomSpecificSelectorPanel();
+  if(roomPanel) { drawRoomSpecificSelectorPanel(); }
   
   
   
   if(buildingObjectsCreated) { drawBuilding(); }
-  
+  //if(buildingObjectsCreated) { System.out.println(highRise.getTenantString()); }
   
   drawElevators();
   moveElevators();
+  
+  
   
   
   //if(buildingObjectsCreated) { testQueue(); }
@@ -173,6 +179,72 @@ void drawRoomSpecificSelectorPanel() {
   fill(0);
   textSize(12); 
   text("ROOM VIEWER", 600, 345);
+  
+  text("TotalPop",690,345);
+  text("CurrentPop", 750, 345); 
+  
+  text("Status", 825, 345); 
+  text("Queue Size", 870, 345);
+  
+  drawPopulationChangeButtons();
+  drawRoomSpecificText();
+  
+}
+
+void drawRoomSpecificText() {
+  String totalPop = ""; 
+  String currPop = ""; 
+  String roomID = "";
+  String queueSize = ""; 
+  
+  rectMode(CORNERS); 
+  fill(#F2F21D);
+  if(showcaseRoom.determineStatus()) {
+    fill(255,0,0); 
+  } else {
+    fill(#F2F21D);
+  }
+  rect(825,350,860,360);
+  
+  
+  totalPop = totalPop + showcaseRoom.getSize();
+  currPop = currPop + showcaseRoom.getHomeSize();
+  
+  roomID = roomID + showcaseRoom.getCoorID().toString(); 
+  
+  if(showcaseRoom.determineStatus()) {
+    
+    
+  } else {
+    
+    
+  }
+  
+  
+        
+  
+  queueSize = queueSize+showcaseRoom.determineQueueSize();
+  
+  fill(0);
+  text(totalPop,690,360);
+  text(currPop,750,360);
+  text(roomID,605,360);
+  text(queueSize,870,360);
+  
+}
+
+void drawPopulationChangeButtons() {
+  rectMode(CORNERS); 
+  fill(#F50C0C);
+  
+  rect(980,350,1080,390);
+  rect(980,400,1080,440);
+  
+  fill(0); 
+  textSize(12);
+  text("Add person",995,375);
+  
+  text("Remove person",985,425);
   
 }
 
@@ -234,7 +306,42 @@ void drawHighRiseInformationPanel() {
   
   rect(0,0,590,420);
   
-  drawGrid();
+  if(buildingObjectsCreated) {
+    drawGrid();
+    drawGridButtons();
+  }
+  
+}
+
+void drawGridButtons() {
+  
+  fill(#F2F21D);
+  
+  rectMode(CORNERS);
+  
+  for(int floor = 0; floor < numFloors; floor++) {
+   
+    for(int room = 0; room < roomsPerFloor; room++) {
+      
+      if(buildingObjectsCreated) {
+        
+        if(highRise.getRoomStatus(floor,room) > 0) {
+          //red window indicates that someone from that room is queuing for the elevator
+           fill(255,0,0); 
+        } else {
+           fill(#F2F21D);
+        }
+        
+      }
+      
+      rect(31+room*17,24+floor*13,46+room*17,33+floor*13);
+     
+      
+      
+    }
+    
+  }
+  
   
 }
 
@@ -333,6 +440,18 @@ void drawElevatorFineTuneControls() {
   
 }
 
+void populateRoomPanel(int floor, int room) {
+  
+  
+  showcaseRoom = highRise.floors.get(floor).getRoomFromIndex(room);
+  
+  //System.out.println("Population of room:" + highRise.floors.get(floor).getRoomFromIndex(room).getSize());
+  System.out.println("ID of room:" + highRise.floors.get(floor).getRoomFromIndex(room).getCoorID().toString());
+  
+  
+}
+
+
 void drawElevatorTextInfo() {
   
   fill(0);
@@ -428,6 +547,28 @@ void drawBuilding() {
   
 }
 
+//adds one person to the showcase room
+void addPerson() {
+  System.out.println("Adding a person"); 
+  
+  int floor = showcaseRoom.getCoorID().getX(); 
+  int room = showcaseRoom.getCoorID().getY();
+  
+  showcaseRoom.addTenant(new Person(personIDGlobal++,floor,room));
+  
+}
+
+//removes one person from the showcase room if possible
+void removePerson() {
+  System.out.println("Removing a person");
+  
+  int floor = showcaseRoom.getCoorID().getX(); 
+  int room = showcaseRoom.getCoorID().getY();
+  
+  showcaseRoom.removeTenant();
+  
+}
+
 
 void drawElevators() {
   
@@ -508,7 +649,12 @@ void makeBuildingObjects() {
   makeElevators();
   
 } //object created done
-        
+
+void destroyBuildingObjects() {
+     highRise.clear(); 
+  
+  
+}
         
 
 
@@ -526,7 +672,9 @@ void setupGuiElements() {
     
     public void controlEvent(CallbackEvent theEvent) {
       
+      destroyBuildingObjects();
       makeBuildingObjects();
+      roomPanel = false;
       
     }
   });
@@ -542,7 +690,9 @@ void setupGuiElements() {
     
     public void controlEvent(CallbackEvent theEvent) {
       
+      destroyBuildingObjects();
       makeBuildingObjects();
+      roomPanel = false; 
       
     }
   });
@@ -558,8 +708,9 @@ void setupGuiElements() {
     
     public void controlEvent(CallbackEvent theEvent) {
       
+      destroyBuildingObjects();
       makeBuildingObjects();
-      
+      roomPanel = false; 
     }
   });
   
@@ -573,6 +724,7 @@ void setupGuiElements() {
     amountOfElevators.onChange(new CallbackListener() {
     
     public void controlEvent(CallbackEvent theEvent) {
+      
       
       makeElevators();
       
@@ -636,12 +788,55 @@ void setupGuiElements() {
 }
 
 
-//button listeners
+Coordinate coordinatesToButton(float x, float y) {
+  
+  float tempX = x; 
+  float tempY = y;
+  tempX = tempX - 31;
+  tempY = tempY - 24;
+  
+  int xRotations = 0; 
+  int yRotations = 0;
+  
+  while(tempX - 17 > 0) {
+    tempX = tempX - 17; 
+    xRotations++;
+  }
+  
+  while(tempY - 13 > 0) {
+    tempY = tempY - 13; 
+    yRotations++; 
+    
+  }
+  
+  Coordinate returnCoordinate = new Coordinate(xRotations, yRotations); 
+  return returnCoordinate; 
+  
+}
+
+void apartmentMatrixClick(float clickX, float clickY) {
+  
+  Coordinate apartmentCoordinate = coordinatesToButton(clickX, clickY); 
+  
+  System.out.println(apartmentCoordinate.toString());
+  
+  //where the user is clicking is actually populated by a room
+  if((apartmentCoordinate.getY() < numFloors)&(apartmentCoordinate.getX() < roomsPerFloor)) {
+    //System.out.println("There is actually a room here");
+    populateRoomPanel(apartmentCoordinate.getY(),apartmentCoordinate.getX());
+    
+  }
+  
+  
+}
+
+
+//all button listeners for the information panels exist within this function
 void mousePressed() {
   
   
-  //System.out.println(mouseX); 
-  //System.out.println(mouseY); 
+  System.out.println(mouseX); 
+  System.out.println(mouseY); 
   
   
   
@@ -682,7 +877,38 @@ void mousePressed() {
       
     }
   
+  //the user has clicked within the apartment room matrix
+  if(mouseX>=30 & mouseX <=590) {
+    
+    if(mouseY>=20 & mouseY <=420) {
+        System.out.println("User has clicked within the apartment matrix");  
+       
+        apartmentMatrixClick(mouseX,mouseY);
+        roomPanel = true;
+    }
+      
+    }
+    
+  //the user has clicked within the add person button
+  if(mouseX>=980 & mouseX<=1080) {
+   if(mouseY>=350 & mouseY<=390) {
+     
+     addPerson();
+     
+   }
+    
+  }
   
+  
+  //the user has clicked within the remove person button
+  if(mouseX>=980 & mouseX<=1080) {
+   if(mouseY>=400 & mouseY<=440) {
+     
+     removePerson();
+     
+   }
+    
+  }
   
   
     

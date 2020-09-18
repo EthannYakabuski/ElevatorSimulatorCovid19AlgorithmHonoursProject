@@ -86,7 +86,11 @@ class Building {
     return returnValue;
   }
   
+void clear() {
   
+  floors.clear();
+  
+}
     
     
 }

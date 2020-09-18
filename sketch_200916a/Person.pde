@@ -32,6 +32,10 @@ class Person {
     return currentTask; 
   }
   
+  int getPID() {
+    return personID; 
+  }
+  
   int getJobLength() {
     
     

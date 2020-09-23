@@ -9,6 +9,8 @@ class Person {
   //if the job tripLength is > 0, then this person is queuing for the elevator
   Job currentTask = new Job();
   
+  boolean waiting = false;
+  
   boolean ridingInElevator = false;
   
   int floor; 

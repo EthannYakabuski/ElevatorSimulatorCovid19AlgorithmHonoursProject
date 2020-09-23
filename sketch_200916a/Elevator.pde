@@ -9,7 +9,7 @@ class Elevator {
   int capacity; 
   int currentLoad;
   
-  
+  Job currentTask = new Job();
   
   
   //which direction is the cab currently headed
@@ -36,12 +36,25 @@ class Elevator {
   //status of the elevator
   boolean busy = false; 
   
+  int currentDestination = 0; 
+ 
+  
+  
   //variables for the cab dimensions and location
   float cabPosX; 
   float cabPosY;
   
   int cabWidth = 20; 
   int cabHeight = 10;
+  
+  boolean doorOpening = false; 
+  boolean doorClosing = false; 
+  boolean doorClosed  = true;
+  
+  //where the elevator is in the animation process of opening the doors
+  int animationFrame = 0; 
+  //how many frames the entire animation should take
+  int maxAnimationFrame = 0; 
   
   Elevator(int cap, int load, float door, int sh, int sw, float floorsPerSec, int positionX, int positionY, int cabPositionX, int cabPositionY) { 
     capacity = cap; 
@@ -116,6 +129,10 @@ class Elevator {
     
   }
   
+  void acceptRequest(Job task) {
+    serviceQueue.add(task);
+    
+  }
   
   //long thin rectangle to house the elevator
   void drawShaft() {
@@ -198,7 +215,7 @@ class Elevator {
   //moves the cab based on its speed for one frame
   void moveUp() {
     
-    System.out.println(cabPosY);
+   // System.out.println(cabPosY);
     
    // System.out.println("Moving an elevator"); 
     
@@ -227,6 +244,24 @@ class Elevator {
   
   //determines the orientation of the elevator and decides whether to call moveUP() or moveDown()
   void move() { 
+   
+   //if this elevator has a Job to do
+    if(serviceQueue.size() >= 1) {
+      
+      currentDestination = serviceQueue.get(0).getPickup();
+     // System.out.println(currentDestination);
+      
+    }
+    
+    
+    //if the current floor is less than the destination floor
+    if(floor < currentDestination) {
+      moveUp();
+      
+    } else if (floor > currentDestination) {
+      moveDown();
+    }
+    
     
     
     

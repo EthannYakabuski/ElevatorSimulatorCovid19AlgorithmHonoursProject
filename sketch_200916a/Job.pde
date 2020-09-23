@@ -5,13 +5,42 @@ class Job {
   int dest;
   int tripLength; 
   
+  boolean elevatorComing = false;
+  
+  int elevatorAccepted = 0; 
   
   Job() {
-   id = 0; 
+   id = -1; 
    pickup = 0; 
    dest = 0; 
    passengerID = 0;
     
+  }
+  
+  int getPickup() {
+    return pickup;  
+  }
+  
+  int getDestination() {
+    return dest;
+  }
+  
+  int getID() {
+    return id; 
+  }
+  
+  void setElevatorComing(boolean eC) {
+    elevatorComing = eC; 
+    
+  }
+  
+  void tickAccepted() {
+    
+    elevatorAccepted++;
+  }
+  
+  int getElevatorAccepted() {
+    return elevatorAccepted; 
   }
   
   Job(int i, int p, int d, int pID) {
@@ -26,6 +55,11 @@ class Job {
   int calculateTripLength() {
       return abs(pickup-dest);
     
+  }
+  
+  String toString() {
+   String returnString = "id: "+id;
+   return returnString;
   }
   
   

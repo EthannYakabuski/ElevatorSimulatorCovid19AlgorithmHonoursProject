@@ -96,6 +96,8 @@ boolean buildingObjectsCreated = false;
 //has the simulation started yet?
 boolean simulationStarted = false; 
 
+boolean tested = false;
+
 //inidication of if the room panel has been used yet
 boolean roomPanel = false;
 Room showcaseRoom = new Room();
@@ -129,13 +131,52 @@ void draw() {
   if(buildingObjectsCreated) { drawBuilding(); }
   //if(buildingObjectsCreated) { System.out.println(highRise.getTenantString()); }
   
+  highRise.giveElevatorTasks();
+  
   drawElevators();
   moveElevators();
   
   
   
+  //implementation testing spawning some random objects
+  if(buildingObjectsCreated & (!tested)) { testPassengerRequest(); }
+  
+  //if(buildingObjectsCreated) { testMultiplePassengerRequests(); }
+  
+  //load test suite functions here
+  
   
   //if(buildingObjectsCreated) { testQueue(); }
+  
+}
+
+void testPassengerRequest() {
+  System.out.println("Testing a passenger request");
+  
+  if(numFloors > 10 & roomsPerFloor > 6) {
+    tested = true;
+    //give the tenant in room (8,5) a task to get to ground floor
+    highRise.floors.get(8).getRoomFromIndex(5).getTenantsList().get(0).setJob(new Job(1,8,1,1001));
+    highRise.floors.get(8).getRoomFromIndex(5).getTenantsList().get(0).waiting = true;
+    System.out.println("Passenger request given ----------------------------------------------------");
+  }
+   
+  
+}
+
+void testMultiplePassengerRequests() {
+  
+  if(numFloors > 10 & roomsPerFloor > 6) {
+    
+    //give the tenant in room (8,5) a task to get to ground floor
+    highRise.floors.get(8).getRoomFromIndex(5).getTenantsList().get(0).setJob(new Job(1,8,1,1001));
+    highRise.floors.get(8).getRoomFromIndex(5).getTenantsList().get(0).waiting = true;
+    
+    
+    highRise.floors.get(9).getRoomFromIndex(2).getTenantsList().get(0).setJob(new Job(2,9,1,1002));
+    highRise.floors.get(9).getRoomFromIndex(2).getTenantsList().get(0).waiting = true;
+  }
+  
   
 }
 
@@ -153,19 +194,23 @@ void startSimulation() {
   System.out.println("Starting simulation"); 
   
   
+  
+  
 }
 
 
 void moveElevators() {
   
+  
+  
   for(int i = 0; i < elevators.size(); i++) {
     if(!(elevators.get(i).busy)) {
        elevators.get(i).move();
+       
     }
     
   }
-  
-  
+ 
   
 }
 
@@ -604,6 +649,8 @@ void makeElevators() {
     
     
   }
+  
+  highRise.setElevators(elevators);
  
 }
 

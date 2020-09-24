@@ -29,6 +29,11 @@ class Job {
     return id; 
   }
   
+  int getPassengerID() {
+    return passengerID; 
+    
+  }
+  
   void setElevatorComing(boolean eC) {
     elevatorComing = eC; 
     

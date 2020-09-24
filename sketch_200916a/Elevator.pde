@@ -16,7 +16,7 @@ class Elevator {
   Direction direction = Direction.STATIONARY; 
   
   //how long the elevator door takes to open
-  float doorTime; //in seconds
+  int doorTime; //in seconds
   
   //variables for the elevator shaft housing the cab
   int elevatorShaftHeight = 0; 
@@ -38,11 +38,17 @@ class Elevator {
   
   int currentDestination = 0; 
  
+ 
+  float sidewaysDoorSpeed = 0.5;
   
+  int doorAnimationTime; 
   
   //variables for the cab dimensions and location
   float cabPosX; 
   float cabPosY;
+  
+  float cabPos2X; 
+  float originalCabPosX; 
   
   int cabWidth = 20; 
   int cabHeight = 10;
@@ -51,12 +57,21 @@ class Elevator {
   boolean doorClosing = false; 
   boolean doorClosed  = true;
   
+  boolean needInstruction = false; 
+  
   //where the elevator is in the animation process of opening the doors
   int animationFrame = 0; 
   //how many frames the entire animation should take
   int maxAnimationFrame = 0; 
   
-  Elevator(int cap, int load, float door, int sh, int sw, float floorsPerSec, int positionX, int positionY, int cabPositionX, int cabPositionY) { 
+  
+  //door opening stopwatch
+  StopWatch doorOpeningTimer = new StopWatch(); 
+  
+  //door closing stopwatch
+  StopWatch doorClosingTimer = new StopWatch();
+  
+  Elevator(int cap, int load, int door, int sh, int sw, float floorsPerSec, int positionX, int positionY, int cabPositionX, int cabPositionY) { 
     capacity = cap; 
     currentLoad = load;
     doorTime = door; 
@@ -67,6 +82,8 @@ class Elevator {
     posY = positionY;
     cabPosX = cabPositionX; 
     cabPosY = cabPositionY;
+    cabPos2X = cabPositionX; 
+    originalCabPosX = cabPositionX; 
     
   }
   
@@ -97,16 +114,19 @@ class Elevator {
   void tickCabSpeedDown() { if(!(floorsPerSecond == 0.1)) { floorsPerSecond = floorsPerSecond - 0.001; } }
   
   
-  void tickDoorSpeed() { if(!(doorTime>=20.000)) { doorTime = doorTime + 0.001; } }
-  void tickDoorSpeedDown() { if(!(doorTime<=1.000)) { doorTime = doorTime - 0.001; } }
+  void tickDoorSpeed() { if(!(doorTime>=20.000)) { doorTime = doorTime + 1; } }
+  void tickDoorSpeedDown() { if(!(doorTime<=1.000)) { doorTime = doorTime - 1; } }
   
   
   int getFloor() { return floor; }
   int getPassengerNum() { return currentLoad; }
   int getCapacity() { return capacity; }
   float getCabSpeed() { return floorsPerSecond; }
-  float getDoorSpeed() { return doorTime; }
+  int getDoorSpeed() { return doorTime; }
   boolean getStatus() { return busy; }
+  Job getCurrentTask() { return currentTask; }
+  
+  boolean getNeedInstruction() { return needInstruction; }
   
   //getters and setters end
   
@@ -149,11 +169,37 @@ class Elevator {
   //draw the cab representing the elevator
   void drawCab() {
     
-    rectMode(CENTER); 
-    fill(#58584B); 
+    if(doorOpening) { //door is in the process of opening
+      
+       rectMode(CENTER); 
+       fill(#58584B); 
+       
+       cabPos2X = cabPos2X - sidewaysDoorSpeed;
+       cabPosX = cabPosX + sidewaysDoorSpeed;
+       
+       rect(cabPosX, cabPosY, cabWidth/2, cabHeight);
+       rect(cabPos2X, cabPosY, cabWidth/2, cabHeight);
+      
+    }  else if (doorClosing) {  //door is in the process of closing
+       
+       rectMode(CENTER); 
+       fill(#58584B); 
+       
+       cabPos2X = cabPos2X + sidewaysDoorSpeed; 
+       cabPosX = cabPosX - sidewaysDoorSpeed; 
+       
+       rect(cabPosX, cabPosY, cabWidth/2, cabHeight);
+       rect(cabPos2X, cabPosY, cabWidth/2, cabHeight);
+      
+      
+    }  else { //elevator is in transit, door is closed shut
     
-    rect(cabPosX, cabPosY, cabWidth, cabHeight);
+      rectMode(CENTER); 
+      fill(#58584B); 
     
+      rect(cabPosX, cabPosY, cabWidth, cabHeight);
+    
+    }
     
   }
   
@@ -243,8 +289,10 @@ class Elevator {
   
   
   //determines the orientation of the elevator and decides whether to call moveUP() or moveDown()
-  void move() { 
-   
+  void move(int frameRate) { 
+    
+    
+   //System.out.println("Current framerate: " + frameRate); 
    //if this elevator has a Job to do
     if(serviceQueue.size() >= 1) {
       
@@ -258,10 +306,85 @@ class Elevator {
     if(floor < currentDestination) {
       moveUp();
       
+      //if the current floor is larger then the destination floor
     } else if (floor > currentDestination) {
       moveDown();
+    
+    //the elevator has reached its destination -> open the door and wait for it to close again before continuing
+    } else if ((floor == currentDestination)&(!doorClosing)) {
+      
+      //if the door isn't already currently opening
+      if(!(doorOpening)) {
+        
+        //if the door is currently closing
+        if(doorClosing) {
+            
+          
+          } else { 
+        
+            System.out.println("Calling openDoor(int frameRate);");
+            openDoor(frameRate);
+          
+          }
+        
+        
+        
+      } else if (doorOpening) {
+        //then the door is currently opening, need to tick the stopwatch keeping track of this elevators door opening animation
+        boolean openAnimationDone;
+        openAnimationDone = doorOpeningTimer.tickTime();
+        
+        //the door has opened all the way
+        if(openAnimationDone) {
+          System.out.println("Closing door");       
+          closeDoor();
+          
+        } else {
+          System.out.println("Animating door opening a bit more");
+          
+          
+        }
+        
+      } 
+      
+    } else if ((floor == currentDestination)&(doorClosing)) {
+      System.out.println("Passenger should get in the cab, and remove their job, passenger should be added to elevator cab, elevator cab should move onto its next destination");
+      doorClosing = false; 
+      doorOpening = false; 
+      needInstruction = true; 
+      
+      
     }
     
+    
+    
+    
+  }
+  
+  //this will only be called once per opening of the door
+  void openDoor(int frameRate) {
+    System.out.println("Inside openDoor(int frameRate)");
+    
+    //calculate how many frames the timer should go on for 
+    int totalDoorTime = doorTime*frameRate; 
+    doorAnimationTime = totalDoorTime; 
+    
+ 
+    doorOpening = true;
+    doorOpeningTimer = new StopWatch(0,0,totalDoorTime,"doorOpening");
+    
+    
+  }
+  
+  
+  //this will only be called once per closing of the door
+  void closeDoor() {
+    System.out.println("Inside closeDoor()");
+    
+    doorOpening = false; 
+    doorClosing = true; 
+    
+    doorClosingTimer = new StopWatch(0,0,doorAnimationTime,"doorClosing");
     
     
     

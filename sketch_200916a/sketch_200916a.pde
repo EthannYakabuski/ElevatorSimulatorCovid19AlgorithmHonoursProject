@@ -49,11 +49,9 @@ int minElevatorCapacity = 1;
 int elevatorCapacity = 1; 
 
 //this is calculated in seconds. a value of 1.0 means the door opens in one second, and closes in one second as well. 
-//a value of 1.5 means the door opens in 1 second and 50 milliseconds
-//a value of 1.9 means the door opens in 1 second and 90 milliseconds
-float maxElevatorDoorTime = 20.0; 
-float minElevatorDoorTime = 1.0;
-float elevatorDoorTime = 1.0;
+int maxElevatorDoorTime = 20; 
+int minElevatorDoorTime = 1;
+int elevatorDoorTime = 1;
 
 //if elevator speed is 1.0 this is equivalent to travelling at 1 floor per second
 float maxElevatorSpeed = 2.0;  //1 floor/0.5 seconds max speed
@@ -124,6 +122,7 @@ void draw() {
   
   drawElevatorInformationPanel();
   drawHighRiseInformationPanel();
+  
   if(roomPanel) { drawRoomSpecificSelectorPanel(); }
   
   
@@ -131,22 +130,32 @@ void draw() {
   if(buildingObjectsCreated) { drawBuilding(); }
   //if(buildingObjectsCreated) { System.out.println(highRise.getTenantString()); }
   
-  highRise.giveElevatorTasks();
-  
   drawElevators();
-  moveElevators();
+  
+  if(simulationStarted) {
+    highRise.giveElevatorTasks();
+  
+    //drawElevators();
+    moveElevators();
+    
+    //
+    checkElevators();
   
   
+    //implementation testing spawning some random objects
+    //if(buildingObjectsCreated & (!tested)) { testPassengerRequest(); }
   
-  //implementation testing spawning some random objects
-  if(buildingObjectsCreated & (!tested)) { testPassengerRequest(); }
+    //if(buildingObjectsCreated & (!tested)) { testMultiplePassengerRequests(); }
   
-  //if(buildingObjectsCreated) { testMultiplePassengerRequests(); }
+    //if(buildingObjectsCreated & (!tested)) { testPassengerRequestsEqualToElevators(); }
   
-  //load test suite functions here
-  
-  
-  //if(buildingObjectsCreated) { testQueue(); }
+   // if(buildingObjectsCreated & (!tested)) { testPassengerRequestsMoreThanElevators(); }
+   
+    
+ 
+    //if(buildingObjectsCreated) { testQueue(); }
+    
+  }
   
 }
 
@@ -156,9 +165,9 @@ void testPassengerRequest() {
   if(numFloors > 10 & roomsPerFloor > 6) {
     tested = true;
     //give the tenant in room (8,5) a task to get to ground floor
-    highRise.floors.get(8).getRoomFromIndex(5).getTenantsList().get(0).setJob(new Job(1,8,1,1001));
+    highRise.floors.get(8).getRoomFromIndex(5).getTenantsList().get(0).setJob(new Job(1,8,1,highRise.floors.get(8).getRoomFromIndex(5).getTenantsList().get(0).getPID()));
     highRise.floors.get(8).getRoomFromIndex(5).getTenantsList().get(0).waiting = true;
-    System.out.println("Passenger request given ----------------------------------------------------");
+    //System.out.println("Passenger request given ----------------------------------------------------");
   }
    
   
@@ -167,15 +176,98 @@ void testPassengerRequest() {
 void testMultiplePassengerRequests() {
   
   if(numFloors > 10 & roomsPerFloor > 6) {
-    
+    tested = true;
     //give the tenant in room (8,5) a task to get to ground floor
-    highRise.floors.get(8).getRoomFromIndex(5).getTenantsList().get(0).setJob(new Job(1,8,1,1001));
+    highRise.floors.get(8).getRoomFromIndex(5).getTenantsList().get(0).setJob(new Job(1,8,1,highRise.floors.get(8).getRoomFromIndex(5).getTenantsList().get(0).getPID()));
     highRise.floors.get(8).getRoomFromIndex(5).getTenantsList().get(0).waiting = true;
     
     
-    highRise.floors.get(9).getRoomFromIndex(2).getTenantsList().get(0).setJob(new Job(2,9,1,1002));
+    highRise.floors.get(9).getRoomFromIndex(2).getTenantsList().get(0).setJob(new Job(2,9,1,highRise.floors.get(9).getRoomFromIndex(2).getTenantsList().get(0).getPID()));
     highRise.floors.get(9).getRoomFromIndex(2).getTenantsList().get(0).waiting = true;
   }
+  
+  
+}
+
+void testPassengerRequestsEqualToElevators() {
+  
+  if(numFloors > 10 & roomsPerFloor > 6) {
+    tested = true;
+    
+    if(elevators.size() == 1) {
+      
+      
+    }
+    
+    if(elevators.size() == 2) {
+      
+      highRise.floors.get(8).getRoomFromIndex(5).getTenantsList().get(0).setJob(new Job(1,8,1,highRise.floors.get(8).getRoomFromIndex(5).getTenantsList().get(0).getPID()));
+      highRise.floors.get(8).getRoomFromIndex(5).getTenantsList().get(0).waiting = true;
+    
+    
+      highRise.floors.get(9).getRoomFromIndex(2).getTenantsList().get(0).setJob(new Job(2,9,1,highRise.floors.get(9).getRoomFromIndex(2).getTenantsList().get(0).getPID()));
+      highRise.floors.get(9).getRoomFromIndex(2).getTenantsList().get(0).waiting = true;
+    }
+    
+    if(elevators.size() == 3) {
+      
+      highRise.floors.get(3).getRoomFromIndex(2).getTenantsList().get(0).setJob(new Job(1,3,1,highRise.floors.get(3).getRoomFromIndex(2).getTenantsList().get(0).getPID()));
+      highRise.floors.get(3).getRoomFromIndex(2).getTenantsList().get(0).waiting = true;
+      
+      highRise.floors.get(8).getRoomFromIndex(5).getTenantsList().get(0).setJob(new Job(2,8,1,highRise.floors.get(8).getRoomFromIndex(5).getTenantsList().get(0).getPID()));
+      highRise.floors.get(8).getRoomFromIndex(5).getTenantsList().get(0).waiting = true;
+    
+    
+      highRise.floors.get(9).getRoomFromIndex(2).getTenantsList().get(0).setJob(new Job(3,9,1,highRise.floors.get(9).getRoomFromIndex(2).getTenantsList().get(0).getPID()));
+      highRise.floors.get(9).getRoomFromIndex(2).getTenantsList().get(0).waiting = true;
+      
+      
+      
+    }
+    
+    if(elevators.size() == 4) {
+       highRise.floors.get(3).getRoomFromIndex(2).getTenantsList().get(0).setJob(new Job(1,3,1,highRise.floors.get(3).getRoomFromIndex(2).getTenantsList().get(0).getPID()));
+      highRise.floors.get(3).getRoomFromIndex(2).getTenantsList().get(0).waiting = true;
+      
+      highRise.floors.get(8).getRoomFromIndex(5).getTenantsList().get(0).setJob(new Job(2,8,1,highRise.floors.get(8).getRoomFromIndex(5).getTenantsList().get(0).getPID()));
+      highRise.floors.get(8).getRoomFromIndex(5).getTenantsList().get(0).waiting = true;
+    
+    
+      highRise.floors.get(9).getRoomFromIndex(2).getTenantsList().get(0).setJob(new Job(3,9,1,highRise.floors.get(9).getRoomFromIndex(2).getTenantsList().get(0).getPID()));
+      highRise.floors.get(9).getRoomFromIndex(2).getTenantsList().get(0).waiting = true;
+      
+       highRise.floors.get(5).getRoomFromIndex(1).getTenantsList().get(0).setJob(new Job(4,5,1,highRise.floors.get(5).getRoomFromIndex(1).getTenantsList().get(0).getPID()));
+      highRise.floors.get(5).getRoomFromIndex(1).getTenantsList().get(0).waiting = true;
+      
+      
+    }
+    
+    
+    
+    
+  }
+  
+  
+  
+}
+
+void testPassengerRequestsMoreThanElevators() {
+  
+  if(elevators.size() == 2) {
+      
+      highRise.floors.get(8).getRoomFromIndex(5).getTenantsList().get(0).setJob(new Job(1,8,1,1001));
+      highRise.floors.get(8).getRoomFromIndex(5).getTenantsList().get(0).waiting = true;
+    
+    
+      highRise.floors.get(9).getRoomFromIndex(2).getTenantsList().get(0).setJob(new Job(2,9,1,1002));
+      highRise.floors.get(9).getRoomFromIndex(2).getTenantsList().get(0).waiting = true;
+      
+      
+      highRise.floors.get(3).getRoomFromIndex(2).getTenantsList().get(0).setJob(new Job(3,8,1,1001));
+      highRise.floors.get(3).getRoomFromIndex(2).getTenantsList().get(0).waiting = true;
+    
+      
+    }
   
   
 }
@@ -193,7 +285,7 @@ void startSimulation() {
   
   System.out.println("Starting simulation"); 
   
-  
+  simulationStarted = true;
   
   
 }
@@ -205,12 +297,37 @@ void moveElevators() {
   
   for(int i = 0; i < elevators.size(); i++) {
     if(!(elevators.get(i).busy)) {
-       elevators.get(i).move();
+       elevators.get(i).move((int)frameRate);
        
     }
     
   }
  
+  
+}
+
+//checks whether or not to see if any of the elevators are in a state of needing to continue after picking up a passenger
+//this function will handle removing that person from the building, and adding them to the elevator
+void checkElevators() {
+  for(int i = 0; i < elevators.size(); i++) {
+     
+    if(elevators.get(i).getNeedInstruction()) {
+      
+      if(elevators.get(i).serviceQueue.size() >= 1) {
+        
+        int passengerID = elevators.get(i).serviceQueue.get(0).getPassengerID();
+        
+        
+        
+      }
+      
+      
+      
+    }
+    
+    
+  }
+  
   
 }
 

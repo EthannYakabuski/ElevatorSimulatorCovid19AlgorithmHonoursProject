@@ -192,6 +192,13 @@ void clear() {
   floors.clear();
   
 }
+
+Person getPersonFromID(int PID) {
+  
+  
+  return new Person();
+  
+}
     
     
 }

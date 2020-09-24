@@ -16,6 +16,10 @@ class Person {
   int floor; 
   int room;
   
+  Person() {
+    
+  }
+  
   Person(int pID, int fl, int ro) {
     personID = pID; 
     floor = fl; 

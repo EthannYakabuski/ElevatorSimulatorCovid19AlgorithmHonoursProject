@@ -49,6 +49,7 @@ class Room {
       return roomID;  
   }
   
+  
   Coordinate getCoorID() {
     return coorID; 
   }
@@ -68,6 +69,11 @@ class Room {
     
     return tenants;
     
+  }
+  
+  ArrayList<Person> getWhoIsHome() {
+    
+    return currentlyHome; 
   }
   
   void addTenant(Person p) {

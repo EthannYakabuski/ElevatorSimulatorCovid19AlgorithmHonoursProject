@@ -7,6 +7,9 @@ class Job {
   
   boolean elevatorComing = false;
   
+  boolean pickedUp = false;
+  boolean droppedOff = false; 
+  
   int elevatorAccepted = 0; 
   
   Job() {
@@ -32,6 +35,14 @@ class Job {
   int getPassengerID() {
     return passengerID; 
     
+  }
+  
+  boolean getPickedUp() {
+    return pickedUp; 
+  }
+  
+  void setPickedUp(boolean p) {
+    pickedUp = p; 
   }
   
   void setElevatorComing(boolean eC) {

@@ -81,6 +81,8 @@ int shaftWidth = 0;
 //master variable making person ID's unique
 int personIDGlobal = 1000;
 
+int currentFrame = 0; 
+
 //list holding the elevators needed
 ArrayList<Elevator> elevators = new ArrayList<Elevator>();
 
@@ -133,6 +135,8 @@ void draw() {
   drawElevators();
   
   if(simulationStarted) {
+    currentFrame++; 
+    
     highRise.giveElevatorTasks();
   
     //drawElevators();
@@ -141,6 +145,9 @@ void draw() {
     //
     checkElevators();
   
+    //
+    checkElevatorExpulsion();
+    
   
     //implementation testing spawning some random objects
     //if(buildingObjectsCreated & (!tested)) { testPassengerRequest(); }
@@ -152,21 +159,52 @@ void draw() {
    // if(buildingObjectsCreated & (!tested)) { testPassengerRequestsMoreThanElevators(); }
    
     
- 
+    if(buildingObjectsCreated) { testDelayedPassengerRequests(); }
+    
+    
     //if(buildingObjectsCreated) { testQueue(); }
     
   }
   
 }
 
+void testDelayedPassengerRequests() {
+  if(numFloors > 10 & roomsPerFloor > 6) {
+    if(currentFrame == 100) {
+       highRise.floors.get(7).getRoomFromIndex(5).getTenantsList().get(0).setJob(new Job(1,8,1,highRise.floors.get(7).getRoomFromIndex(5).getTenantsList().get(0).getPID()));
+       highRise.floors.get(7).getRoomFromIndex(5).getTenantsList().get(0).waiting = true; 
+    } else if (currentFrame == 200) {
+       highRise.floors.get(3).getRoomFromIndex(2).getTenantsList().get(0).setJob(new Job(1,2,1,highRise.floors.get(3).getRoomFromIndex(2).getTenantsList().get(0).getPID()));
+       highRise.floors.get(3).getRoomFromIndex(2).getTenantsList().get(0).waiting = true;
+      
+    } else if (currentFrame == 250) {
+       highRise.floors.get(8).getRoomFromIndex(7).getTenantsList().get(0).setJob(new Job(1,7,1,highRise.floors.get(8).getRoomFromIndex(7).getTenantsList().get(0).getPID()));
+       highRise.floors.get(8).getRoomFromIndex(7).getTenantsList().get(0).waiting = true;
+      
+    } else if (currentFrame == 275) {
+       highRise.floors.get(4).getRoomFromIndex(1).getTenantsList().get(0).setJob(new Job(1,3,1,highRise.floors.get(4).getRoomFromIndex(1).getTenantsList().get(0).getPID()));
+       highRise.floors.get(4).getRoomFromIndex(1).getTenantsList().get(0).waiting = true;
+      
+    } else if (currentFrame == 300) {
+       highRise.floors.get(9).getRoomFromIndex(9).getTenantsList().get(0).setJob(new Job(1,8,1,highRise.floors.get(9).getRoomFromIndex(9).getTenantsList().get(0).getPID()));
+       highRise.floors.get(9).getRoomFromIndex(9).getTenantsList().get(0).waiting = true;
+    }
+    
+  }
+  
+  
+  
+}
+
 void testPassengerRequest() {
+  
   System.out.println("Testing a passenger request");
   
   if(numFloors > 10 & roomsPerFloor > 6) {
     tested = true;
     //give the tenant in room (8,5) a task to get to ground floor
-    highRise.floors.get(8).getRoomFromIndex(5).getTenantsList().get(0).setJob(new Job(1,8,1,highRise.floors.get(8).getRoomFromIndex(5).getTenantsList().get(0).getPID()));
-    highRise.floors.get(8).getRoomFromIndex(5).getTenantsList().get(0).waiting = true;
+    highRise.floors.get(7).getRoomFromIndex(5).getTenantsList().get(0).setJob(new Job(1,8,1,highRise.floors.get(7).getRoomFromIndex(5).getTenantsList().get(0).getPID()));
+    highRise.floors.get(7).getRoomFromIndex(5).getTenantsList().get(0).waiting = true;
     //System.out.println("Passenger request given ----------------------------------------------------");
   }
    
@@ -178,12 +216,12 @@ void testMultiplePassengerRequests() {
   if(numFloors > 10 & roomsPerFloor > 6) {
     tested = true;
     //give the tenant in room (8,5) a task to get to ground floor
-    highRise.floors.get(8).getRoomFromIndex(5).getTenantsList().get(0).setJob(new Job(1,8,1,highRise.floors.get(8).getRoomFromIndex(5).getTenantsList().get(0).getPID()));
-    highRise.floors.get(8).getRoomFromIndex(5).getTenantsList().get(0).waiting = true;
+    highRise.floors.get(7).getRoomFromIndex(5).getTenantsList().get(0).setJob(new Job(1,8,1,highRise.floors.get(7).getRoomFromIndex(5).getTenantsList().get(0).getPID()));
+    highRise.floors.get(7).getRoomFromIndex(5).getTenantsList().get(0).waiting = true;
     
     
-    highRise.floors.get(9).getRoomFromIndex(2).getTenantsList().get(0).setJob(new Job(2,9,1,highRise.floors.get(9).getRoomFromIndex(2).getTenantsList().get(0).getPID()));
-    highRise.floors.get(9).getRoomFromIndex(2).getTenantsList().get(0).waiting = true;
+    highRise.floors.get(8).getRoomFromIndex(2).getTenantsList().get(0).setJob(new Job(2,9,1,highRise.floors.get(8).getRoomFromIndex(2).getTenantsList().get(0).getPID()));
+    highRise.floors.get(8).getRoomFromIndex(2).getTenantsList().get(0).waiting = true;
   }
   
   
@@ -318,6 +356,24 @@ void checkElevators() {
         int passengerID = elevators.get(i).serviceQueue.get(0).getPassengerID();
         
         
+        Person ourPerson = highRise.getPersonFromID(passengerID);
+        
+        
+        //add this person to the appropriate elevator
+        ourPerson.flipRidingElevator(); 
+        elevators.get(i).addPassenger(ourPerson); 
+        
+        //remove this person from the building - ergo removing the job from the room as well so when they enter the elevator their room should turn back yellow
+        highRise.leaveRoom(ourPerson);
+        
+        //update the elevators job
+        elevators.get(i).getServiceQueue().get(0).setPickedUp(true);
+        
+        //update the persons job
+        ourPerson.getJob().setPickedUp(true);
+        
+        //update that the elevator doesn't need instruction anymore
+        elevators.get(i).setNeedInstruction(false);
         
       }
       
@@ -327,6 +383,27 @@ void checkElevators() {
     
     
   }
+  
+  
+}
+
+void checkElevatorExpulsion() {
+  
+  for(int i = 0; i < elevators.size(); i++) {
+    
+    //there exists a job that the elevator is doing
+    if(elevators.get(i).serviceQueue.size() >= 1) {
+      
+      //check to see if the elevators job has been fulfilled, that it has the person in its cabin, and that the current floor is the destination floor
+      
+      
+      
+      
+    }
+    
+    
+  }
+  
   
   
 }
@@ -497,7 +574,7 @@ void drawGridButtons() {
       }
       
       rect(31+room*17,24+floor*13,46+room*17,33+floor*13);
-     
+      //rect(31+room*17,15+floor*13,46+room*17,24+floor*13);
       
       
     }

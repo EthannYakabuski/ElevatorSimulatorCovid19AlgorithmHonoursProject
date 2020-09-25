@@ -9,6 +9,8 @@ class Building {
   ArrayList<Job> jobsBeingServed = new ArrayList<Job>();
   
   
+  
+  
   Building() {
     
     
@@ -59,6 +61,7 @@ class Building {
     int foundPopulation = -1;
     //System.out.println("Giving elevators tasks");
     
+    //these nested loops handle giving Jobs to elevators from people that are currently at home in their room
     for(int floor = 0; floor < numFloors; floor++) {
      
       for(int room = 0; room < numRooms; room++) {
@@ -93,6 +96,8 @@ class Building {
       
     }
     
+    
+    //this if statement handles when the building doesn't have any jobs for the elevators
     //the presence of this ID is the empty placeholder job request, no job actually exists
     //the presenece of foundFloor being -1 is that there was no job found in the building that has not already been accepted by an elevator
     if(!(foundFloor == -1)) {
@@ -123,6 +128,45 @@ class Building {
     
     
   }
+  
+  
+  
+  
+  //this handles the elevators that are finished a task and need to now expel their passenger
+  
+  
+  for(int i = 0; i < elevators.size(); i++) { //for each elevator
+    
+    if(elevators.get(i).serviceQueue.size() >= 1) {  //if the elevator has at least one task
+      Job elevatorsJob = elevators.get(i).getServiceQueue().get(0);
+    
+      if(elevatorsJob.getDestination() == elevators.get(i).getFloor()) {  //if the elevator is currently on the floor of the task destination
+      
+      
+        //if there is actually a person in the cab
+        if(elevators.get(i).getCabPassengers().size() >= 1) {
+        System.out.println("expelling passenger -------------------------");
+          
+          //expel the person who is associated with the current task
+          
+          //covid-19 algorithm only has one cab passenger at a time ---- update later when other algorithms are added
+          elevators.get(i).getCabPassengers().get(0).flipRidingElevator();
+          elevators.get(i).getCabPassengers().remove(0);
+          elevators.get(i).getServiceQueue().remove(0);
+          
+        }
+      
+     }
+     
+    }
+    
+    
+    
+  }
+  
+  
+  
+  
   }
   
   int getFreeElevator() {
@@ -140,6 +184,15 @@ class Building {
     }
     
     return indexOfLeastBusyElevator; 
+    
+    
+  }
+  
+  
+  void leaveRoom(Person p) {
+    
+    floors.get(p.getFloor()).getRoomFromIndex(p.getRoom()).getWhoIsHome().remove(p);
+    
     
     
   }
@@ -177,9 +230,9 @@ class Building {
     int returnValue = 0; 
     
     
-    for(int i = 0; i < floors.get(floor).getRoomFromIndex(room).getSize(); i++) {
+    for(int i = 0; i < floors.get(floor).getRoomFromIndex(room).getWhoIsHome().size(); i++) {
       
-       returnValue+=floors.get(floor).getRoomFromIndex(room).getTenant(i).getJobLength();
+       returnValue+=floors.get(floor).getRoomFromIndex(room).getWhoIsHome().get(i).getJobLength();
       
       
     }
@@ -195,8 +248,35 @@ void clear() {
 
 Person getPersonFromID(int PID) {
   
+  Person returnPerson = new Person(); 
   
-  return new Person();
+  for(int floor = 0; floor < numFloors; floor++) {
+      
+     for(int room = 0; room < numRooms; room++) {
+      
+       
+       for(int population = 0; population < floors.get(floor).getRoomFromIndex(room).getSize(); population++) {
+         
+        
+           if(floors.get(floor).getRoomFromIndex(room).getTenantsList().get(population).getPID() == PID) {
+             
+             System.out.println("Match found");
+             returnPerson = floors.get(floor).getRoomFromIndex(room).getTenantsList().get(population);
+           }
+         
+         
+         
+       }
+       
+     }
+      
+      
+    }
+  
+  
+  return returnPerson;
+  
+  
   
 }
     

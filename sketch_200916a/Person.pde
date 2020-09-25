@@ -49,6 +49,24 @@ class Person {
     
   }
   
+  int getFloor() {
+    return floor; 
+    
+    
+  }
+  
+  int getRoom() {
+    return room;
+    
+  }
+  
+  void flipRidingElevator() {
+    if(ridingInElevator) {
+      ridingInElevator = false; 
+    } else {
+      ridingInElevator = true; 
+    }
+  }
   
   String attendanceCall() {
     

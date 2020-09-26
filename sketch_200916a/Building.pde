@@ -69,9 +69,12 @@ class Building {
         
         for(int population = 0; population < floors.get(floor).getRoomFromIndex(room).getSize(); population++) {
           
+          
+          
           //if there is a person waiting
           if(floors.get(floor).getRoomFromIndex(room).getTenantsList().get(population).waiting) {
             
+            //System.out.println("There is a person waiting"); 
             
             //if that persons job has not been accepted yet
             if(floors.get(floor).getRoomFromIndex(room).getTenantsList().get(population).getJob().elevatorAccepted == 0) {
@@ -289,6 +292,47 @@ Person getPersonFromFloorAndRoom(int fl, int ro) {
   System.out.println("there was no person in that room"); 
   return new Person();
 }
+
+
+void addJobFromFloorAndRoom(Job jobToAdd, int roomToAdd, int floorToAdd) {
+  System.out.println("Adding the requested job to: (" + roomToAdd + "," + floorToAdd + ")");
+  
+}
+
+void addJobFromPID(Job jobToAdd, int pID) {
+  
+  
+  for(int f = 0; f < numFloors; f++) {
+    
+    for(int r = 0; r < roomsPerFloor; r++) {
+      
+      
+      for(int p = 0; p < floors.get(f).getRoomFromIndex(r).getTenantsList().size(); p++) {
+        
+        
+        if(floors.get(f).getRoomFromIndex(r).getTenantsList().get(p).getPID() == pID) {
+          
+           floors.get(f).getRoomFromIndex(r).getTenantsList().get(p).setJob(jobToAdd);
+           floors.get(f).getRoomFromIndex(r).getTenantsList().get(p).setWaiting(true); 
+          
+        }
+        
+        
+      }
+      
+      
+    }
+    
+  }
+  
+  
+}
+    
+    
+    
+    
+    
+    
     
     
 }

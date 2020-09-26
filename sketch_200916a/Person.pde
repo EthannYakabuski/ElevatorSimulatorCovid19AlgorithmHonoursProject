@@ -38,6 +38,10 @@ class Person {
     return currentTask; 
   }
   
+  void setWaiting(boolean w) {
+    waiting = w; 
+  }
+  
   int getPID() {
     return personID; 
   }

@@ -126,6 +126,10 @@ Room showcaseRoom = new Room();
 int globalJobID = 1000; 
 
 
+
+//has a file been given to the event scheduler yet?
+boolean eventSchedulerLoaded = false; 
+
 void setup() {
   
   guiControl = new ControlP5(this);
@@ -160,18 +164,25 @@ void draw() {
   if(simulationStarted) { drawSimulationTimer(); }
   
   
+  
   if(buildingObjectsCreated) { drawBuilding(); }
   //if(buildingObjectsCreated) { System.out.println(highRise.getTenantString()); }
   
   drawElevators();
   
   if(simulationStarted) {
+    if(eventSchedulerLoaded) { tickEventScheduler(); }
+    
+    //incremement the frame counters
     simulationFramesTaken++;
     currentFrame++; 
     
+    
     checkSimulationTime();
     
+    
     highRise.giveElevatorTasks();
+  
   
     //drawElevators();
     moveElevators();
@@ -181,6 +192,33 @@ void draw() {
   
     //
     checkElevatorExpulsion();
+    
+    
+    //if the event scheduler is being used in this instance of simulation
+    if(eventSchedulerLoaded) {
+      boolean newEvent = eventScheduler.expelJob(); 
+    
+      if(newEvent) {
+        System.out.println("add a new job to the building - from the event scheduler"); 
+        
+        Job jobToAdd = eventScheduler.getTopTask();
+        
+        
+        highRise.addJobFromPID(jobToAdd,jobToAdd.getPassengerID()); 
+        
+        //make the event scheduler wait again
+        eventScheduler.setWaiting(true); 
+        
+       
+        
+        //add the specified delay to the event schedule so that it doesn't schedule another job until it is supposed to
+        eventScheduler.setDelay(jobToAdd.getDelay()); 
+      
+      } else {
+        //System.out.println("no job to add to the building this frame"); 
+      
+      }
+    }
     
   
     //implementation testing spawning some random objects
@@ -193,7 +231,7 @@ void draw() {
    // if(buildingObjectsCreated & (!tested)) { testPassengerRequestsMoreThanElevators(); }
    
     
-    if(buildingObjectsCreated) { testDelayedPassengerRequests(); }
+   //if(buildingObjectsCreated) { testDelayedPassengerRequests(); }
     
     
     //if(buildingObjectsCreated) { testQueue(); }
@@ -368,6 +406,14 @@ void checkSimulationTime() {
    if(simulationFramesTaken > simulationFramesRunTime) {
      simulationStarted = false; 
    }
+  
+}
+
+
+void tickEventScheduler() {
+  
+  eventScheduler.tick();
+  
   
 }
 
@@ -1211,6 +1257,8 @@ void processQueueFile(File fileSelected) {
   } else {
     System.out.println("processing file");
     
+    eventSchedulerLoaded = true; 
+    
     globalJobID = 1000; 
     
     eventScheduler.clearEvents();
@@ -1232,12 +1280,12 @@ void processQueueFile(File fileSelected) {
     int initialDelay = Integer.valueOf(stringInitialDelay); 
     
    
-    
+    eventScheduler.setDelay(initialDelay); 
     //starting at 1 because we have already taken off the 0'th element for the initial delay
     //for each event specified in the text file create a job and add it to the event scheduler
     for(int events = 1; events < splitLines.length; events++) {
       
-      //we have reached the end of line character
+      //we have reached the end of line character break out of this loop
       if(splitLines[events].equals("?!")) { break; }
       
       String[] eventSplitLines = split(splitLines[events],":");
@@ -1247,10 +1295,11 @@ void processQueueFile(File fileSelected) {
       int personsFloor = Integer.valueOf(eventSplitLines[0]); 
       int personsRoomNow = Integer.valueOf(eventSplitLines[1]); 
       int personsDestinationFloor = Integer.valueOf(eventSplitLines[2]); 
+      
       int personsDestinationRoom = Integer.valueOf(eventSplitLines[3]); 
       int delayUntilNextJob = Integer.valueOf(eventSplitLines[4]); 
      
-      
+      System.out.println(personsFloor + " " + personsRoomNow + " " + personsDestinationFloor + " " + personsDestinationRoom + " " + delayUntilNextJob); 
       //since this is the event scheduler, it will simply assign this task to the first person in the currently home list
       eventScheduler.addJob(new Job(globalJobID, personsFloor, personsDestinationFloor, personsDestinationRoom, highRise.getPersonFromFloorAndRoom(personsFloor,personsRoomNow).getPID(), delayUntilNextJob)); 
       

@@ -6,6 +6,8 @@ class EventScheduler {
   boolean waiting = true; 
   
   
+  int masterFramesServed = 0; 
+  
   //keeps track of how many frames the scheduler should wait until spitting out the next event
   int currentDelayTotalFrames = 0; 
   
@@ -21,6 +23,19 @@ class EventScheduler {
   EventScheduler(ArrayList<Job> sE) {
     simulationEvents = sE; 
   }
+  
+  Job getTopTask() {
+    Job tempJob = simulationEvents.get(0); 
+    simulationEvents.remove(0); 
+    
+    return tempJob; 
+    
+  }
+    
+  void setWaiting(boolean w) {
+    waiting = w; 
+  }
+  
   
   
   void addJob(Job j) {
@@ -38,7 +53,36 @@ class EventScheduler {
     currentDelayFramesServed = 0; 
   }
     
+  void tick() {
+   masterFramesServed++;  
+   
+   if(waiting) {
+     currentDelayFramesServed++;
+     //if the amounts of frames served is bigger or equal to the amount of frames the event was asked to delay for
+     if(currentDelayFramesServed >= currentDelayTotalFrames) {
+       waiting = false; 
+       currentDelayFramesServed = 0;
+     }
+    }
+  }
   
+  boolean expelJob() {
+   
+    //if there are still jobs to process
+    if(!waiting) { //and the scheduler is not currently on a delay
+      if(simulationEvents.size() >= 1) {
+        
+        
+        return true; 
+      
+      }
+    }
+    
+   return false; 
+    
+   
+    
+  }
   
   
 }

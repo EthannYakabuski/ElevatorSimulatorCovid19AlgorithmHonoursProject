@@ -4,6 +4,7 @@ class Job {
   int pickup; 
   int dest;
   int tripLength; 
+  int roomDest; 
   
   boolean elevatorComing = false;
   
@@ -11,6 +12,8 @@ class Job {
   boolean droppedOff = false; 
   
   int elevatorAccepted = 0; 
+  
+  int delayFrames = 0; 
   
   Job() {
    id = -1; 
@@ -35,6 +38,14 @@ class Job {
   int getPassengerID() {
     return passengerID; 
     
+  }
+  
+  int getDelay() {
+    return delayFrames; 
+  }
+  
+  void setDelay(int d) {
+    delayFrames = d; 
   }
   
   boolean getPickedUp() {
@@ -65,6 +76,16 @@ class Job {
    dest = d; 
    passengerID = pID; 
   }
+  
+  Job(int i, int p, int d, int r, int pID, int delay) {
+   id = i; 
+   pickup = p; 
+   dest = d; 
+   roomDest = r;
+   passengerID = pID; 
+   delayFrames = delay;
+  }
+  
   
   
   

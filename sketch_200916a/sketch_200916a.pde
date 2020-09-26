@@ -22,10 +22,13 @@ Slider amountOfCabCapacity;
 Slider amountOfSimulationTime;
 Slider amountOfSimulationSpeed; 
 RadioButton elevatorAlgorithmChosen; 
-Textarea queueInput; 
+Textfield queueInput; 
 
 //the building object
 Building highRise = new Building();
+
+//object that schedules queue events
+EventScheduler eventScheduler = new EventScheduler();
 
 //holds which algorithm is being tested in the simulation
 int elevatorAlgorithm; 
@@ -117,6 +120,11 @@ boolean tested = false;
 //inidication of if the room panel has been used yet
 boolean roomPanel = false;
 Room showcaseRoom = new Room();
+
+
+//variable for when the event scheduler is making jobs
+int globalJobID = 1000; 
+
 
 void setup() {
   
@@ -570,6 +578,17 @@ void drawDeveloperControlsBackground() {
    fill(0); 
    textSize(12); 
    text("START SIMULATION", 1445, 880); 
+   
+   //draw the 'choose elevator queue file button'
+   fill(#F0112F);
+   rect(1270,580,buttonSizeWidth,buttonSizeHeight);
+   
+   fill(0); 
+   textSize(10); 
+   text("Locate queue input in .txt",1205,585);
+   
+   
+   
 }
 
 void drawElevatorInformationPanel() {
@@ -1005,10 +1024,17 @@ void controlEvent(ControlEvent ev) {
 //initial setup for the developer GUI controls this is only to be run once in setup()
 void setupGuiElements() {
   
+  
+  /*
+  
   //adding the text area for defining the custom elevator queue input
-  queueInput = guiControl.addTextarea("queueInput");
-  
-  
+  queueInput = guiControl.addTextfield("queueInput")
+    .setPosition(1150,550)
+    .setSize(200,50)
+    .setFont(createFont("arial",12))
+    .setColor(255);
+    */
+    
   //adding elevator algorithm choice radio buttons to the developer interface
   elevatorAlgorithmChosen = guiControl.addRadioButton("elevatorAlgorithm")
      .setPosition(1140,50)
@@ -1170,6 +1196,77 @@ void setupGuiElements() {
    
 }
 
+void locateQueueFile() {
+  
+  selectInput("Locate event-creation file", "processQueueFile"); 
+  
+  
+}
+
+//this function is run when the user returns from the file selection window
+void processQueueFile(File fileSelected) {
+  
+  if(fileSelected == null) {
+    System.out.println("no file chosen"); 
+  } else {
+    System.out.println("processing file");
+    
+    globalJobID = 1000; 
+    
+    eventScheduler.clearEvents();
+    
+    //load the file into memory
+    String[] lines = loadStrings(fileSelected);
+    
+    
+    //System.out.println(lines[0]);
+    String lineString = lines[0];
+    
+    //split on the event delimiter - the first event will be the initial delay
+    String[] splitLines = split(lineString,"//");
+    
+    
+    String stringInitialDelay = splitLines[0]; 
+    
+    //convert the delay to an integer value
+    int initialDelay = Integer.valueOf(stringInitialDelay); 
+    
+   
+    
+    //starting at 1 because we have already taken off the 0'th element for the initial delay
+    //for each event specified in the text file create a job and add it to the event scheduler
+    for(int events = 1; events < splitLines.length; events++) {
+      
+      //we have reached the end of line character
+      if(splitLines[events].equals("?!")) { break; }
+      
+      String[] eventSplitLines = split(splitLines[events],":");
+      
+      System.out.println(eventSplitLines.length);
+      
+      int personsFloor = Integer.valueOf(eventSplitLines[0]); 
+      int personsRoomNow = Integer.valueOf(eventSplitLines[1]); 
+      int personsDestinationFloor = Integer.valueOf(eventSplitLines[2]); 
+      int personsDestinationRoom = Integer.valueOf(eventSplitLines[3]); 
+      int delayUntilNextJob = Integer.valueOf(eventSplitLines[4]); 
+     
+      
+      //since this is the event scheduler, it will simply assign this task to the first person in the currently home list
+      eventScheduler.addJob(new Job(globalJobID, personsFloor, personsDestinationFloor, personsDestinationRoom, highRise.getPersonFromFloorAndRoom(personsFloor,personsRoomNow).getPID(), delayUntilNextJob)); 
+      
+      globalJobID++; 
+      
+    }
+    
+    //System.out.println(splitLines[0]); 
+    //System.out.println(splitLines[1]); 
+   // System.out.println(splitLines[2]); 
+   // System.out.println(splitLines[3]); 
+    
+  }
+  
+}
+
 
 Coordinate coordinatesToButton(float x, float y) {
   
@@ -1248,6 +1345,21 @@ void mousePressed() {
     
     
   }
+  
+  //the user has clicked within the queue input file button
+  if(mouseX>=1195 & mouseX <=1345) {
+   
+    if(mouseY>=555 & mouseY <= 605) {
+      
+      System.out.println("User has clicked within the located file button");
+      locateQueueFile();
+      
+    }
+    
+    
+  }
+  
+  
   
   //the user has click withing the spawn building button
   if(mouseX>=1225 & mouseX <=1375) {

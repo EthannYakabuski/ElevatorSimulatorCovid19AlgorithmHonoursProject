@@ -279,6 +279,16 @@ Person getPersonFromID(int PID) {
   
   
 }
+
+Person getPersonFromFloorAndRoom(int fl, int ro) {
+  
+  if(floors.get(fl).getRoomFromIndex(ro).getHomeSize() >= 1) {
+    return floors.get(fl).getRoomFromIndex(ro).getWhoIsHome().get(0);
+  }
+  
+  System.out.println("there was no person in that room"); 
+  return new Person();
+}
     
     
 }

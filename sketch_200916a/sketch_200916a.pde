@@ -20,10 +20,15 @@ Slider amountOfDoorTime;
 Slider amountOfCabSpeed; 
 Slider amountOfCabCapacity; 
 Slider amountOfSimulationTime;
+Slider amountOfSimulationSpeed; 
+RadioButton elevatorAlgorithmChosen; 
+Textarea queueInput; 
 
 //the building object
 Building highRise = new Building();
 
+//holds which algorithm is being tested in the simulation
+int elevatorAlgorithm; 
 
 //apartment sizes sliders
 int maxFloors = 30; 
@@ -64,6 +69,14 @@ int minMinutes = 1;
 int simulationRunTime = 1; 
 
 //simulation speed slider
+int simulationSpeed = 1; 
+int maxSimulationSpeed = 4; 
+int minSimulationSpeed = 1; 
+
+
+//simulation frame trackers
+int simulationFramesTaken = 0; 
+int simulationFramesRunTime = 0; 
 
 
 //variables for defining the sliders in the developer GUI section
@@ -77,6 +90,9 @@ int buttonSizeWidth = 150;
 //local variables for elevator shaft dimensions
 int shaftHeight = 0; 
 int shaftWidth = 0; 
+
+//frameRate
+int frameRate = 15; 
 
 //master variable making person ID's unique
 int personIDGlobal = 1000;
@@ -110,7 +126,7 @@ void setup() {
   smooth();
   noStroke();
   
-  frameRate(15); //fifteen frames / second - real time
+  frameRate(frameRate); //fifteen frames / second - real time
   
   setupGuiElements();
 }
@@ -120,13 +136,20 @@ void draw() {
   fill(0);
   background(0); //black
   
+ 
+  
   drawDeveloperControlsBackground();
   
   drawElevatorInformationPanel();
   drawHighRiseInformationPanel();
   
+  
+  
+  recalculateSimulationFrames();
+  
   if(roomPanel) { drawRoomSpecificSelectorPanel(); }
   
+  if(simulationStarted) { drawSimulationTimer(); }
   
   
   if(buildingObjectsCreated) { drawBuilding(); }
@@ -135,7 +158,10 @@ void draw() {
   drawElevators();
   
   if(simulationStarted) {
+    simulationFramesTaken++;
     currentFrame++; 
+    
+    checkSimulationTime();
     
     highRise.giveElevatorTasks();
   
@@ -174,19 +200,19 @@ void testDelayedPassengerRequests() {
        highRise.floors.get(7).getRoomFromIndex(5).getTenantsList().get(0).setJob(new Job(1,8,1,highRise.floors.get(7).getRoomFromIndex(5).getTenantsList().get(0).getPID()));
        highRise.floors.get(7).getRoomFromIndex(5).getTenantsList().get(0).waiting = true; 
     } else if (currentFrame == 200) {
-       highRise.floors.get(3).getRoomFromIndex(2).getTenantsList().get(0).setJob(new Job(1,2,1,highRise.floors.get(3).getRoomFromIndex(2).getTenantsList().get(0).getPID()));
+       highRise.floors.get(3).getRoomFromIndex(2).getTenantsList().get(0).setJob(new Job(1,4,1,highRise.floors.get(3).getRoomFromIndex(2).getTenantsList().get(0).getPID()));
        highRise.floors.get(3).getRoomFromIndex(2).getTenantsList().get(0).waiting = true;
       
     } else if (currentFrame == 250) {
-       highRise.floors.get(8).getRoomFromIndex(7).getTenantsList().get(0).setJob(new Job(1,7,1,highRise.floors.get(8).getRoomFromIndex(7).getTenantsList().get(0).getPID()));
+      highRise.floors.get(8).getRoomFromIndex(7).getTenantsList().get(0).setJob(new Job(1,9,1,highRise.floors.get(8).getRoomFromIndex(7).getTenantsList().get(0).getPID()));
        highRise.floors.get(8).getRoomFromIndex(7).getTenantsList().get(0).waiting = true;
       
     } else if (currentFrame == 275) {
-       highRise.floors.get(4).getRoomFromIndex(1).getTenantsList().get(0).setJob(new Job(1,3,1,highRise.floors.get(4).getRoomFromIndex(1).getTenantsList().get(0).getPID()));
+       highRise.floors.get(4).getRoomFromIndex(1).getTenantsList().get(0).setJob(new Job(1,5,1,highRise.floors.get(4).getRoomFromIndex(1).getTenantsList().get(0).getPID()));
        highRise.floors.get(4).getRoomFromIndex(1).getTenantsList().get(0).waiting = true;
       
     } else if (currentFrame == 300) {
-       highRise.floors.get(9).getRoomFromIndex(9).getTenantsList().get(0).setJob(new Job(1,8,1,highRise.floors.get(9).getRoomFromIndex(9).getTenantsList().get(0).getPID()));
+       highRise.floors.get(9).getRoomFromIndex(9).getTenantsList().get(0).setJob(new Job(1,10,1,highRise.floors.get(9).getRoomFromIndex(9).getTenantsList().get(0).getPID()));
        highRise.floors.get(9).getRoomFromIndex(9).getTenantsList().get(0).waiting = true;
     }
     
@@ -323,8 +349,17 @@ void startSimulation() {
   
   System.out.println("Starting simulation"); 
   
+  System.out.println(describeSimulationStart());
+  
   simulationStarted = true;
   
+  
+}
+
+void checkSimulationTime() {
+   if(simulationFramesTaken > simulationFramesRunTime) {
+     simulationStarted = false; 
+   }
   
 }
 
@@ -404,6 +439,21 @@ void checkElevatorExpulsion() {
     
   }
   
+  
+  
+}
+
+void drawSimulationTimer() {
+  
+  rectMode(CORNERS);
+  fill(255); //white
+  
+  rect(10,425,150,470);
+  
+  fill(0);
+  textSize(12);
+  
+  text(simulationFramesTaken, 20, 447); 
   
   
 }
@@ -690,6 +740,25 @@ void populateRoomPanel(int floor, int room) {
   
 }
 
+String describeSimulationStart() {
+  
+  String returnString = "Starting simulation: --- "; 
+  
+  returnString += "RunTime: " + simulationRunTime + " minute "; 
+  
+  if(elevatorAlgorithm == 0) {
+    
+    returnString += "--- Using COVID-19 algorithm in the elevators ";
+    
+  } else if (elevatorAlgorithm == 1) {
+    
+    returnString += "--- Using Regular algorithm in the elevators ";
+    
+  }
+  
+  return returnString;  
+}
+
 
 void drawElevatorTextInfo() {
   
@@ -829,6 +898,22 @@ void calculateShaftDimensions() {
   
 }
 
+void recalculateSimulationFrames() {
+  int simulationMinutes = simulationRunTime*60; 
+  simulationFramesRunTime = simulationMinutes*frameRate; 
+  
+}
+
+
+void calculateSimulationSpeed() {
+  int baseFrameRate = 15; 
+  
+  int newFrameRate = baseFrameRate*simulationSpeed; 
+  
+  frameRate(newFrameRate);
+  
+}
+
 
 //this function is responsible for object creation of the elevators given the information on the sliders when the spawn elevators button is hit
 void makeElevators() {
@@ -896,11 +981,45 @@ void destroyBuildingObjects() {
   
   
 }
+
+
+//no .onchange for radio buttons so I have to use this
+void controlEvent(ControlEvent ev) {
+  
+  if(ev.isFrom(elevatorAlgorithmChosen)) {
+    System.out.println("Radio button event");
+    System.out.println(ev.getValue());
+    
+    if(ev.getValue() == 2.0) {
+      elevatorAlgorithm = 1; 
+    } else if (ev.getValue() == 1.0) {
+      elevatorAlgorithm = 0; 
+    }
+    
+  }
+  
+}
         
 
 
 //initial setup for the developer GUI controls this is only to be run once in setup()
 void setupGuiElements() {
+  
+  //adding the text area for defining the custom elevator queue input
+  queueInput = guiControl.addTextarea("queueInput");
+  
+  
+  //adding elevator algorithm choice radio buttons to the developer interface
+  elevatorAlgorithmChosen = guiControl.addRadioButton("elevatorAlgorithm")
+     .setPosition(1140,50)
+     .setSize(60,30)
+     .setItemsPerRow(1)
+     .addItem("Covid-19 algorithm",1)
+     .addItem("Regular algorithm",2)
+     .activate(0);
+     
+      
+  
   //adding apartment creation sliders to the developer interface
   
   amountOfFloors = guiControl.addSlider("numFloors")
@@ -1024,6 +1143,29 @@ void setupGuiElements() {
     .setRange(minMinutes,maxMinutes)
     .setValue(simulationRunTime);
     
+    
+    amountOfSimulationTime.onChange(new CallbackListener() {
+       public void controlEvent(CallbackEvent theEvent) {
+         
+         recalculateSimulationFrames();
+       }
+    });
+
+
+  amountOfSimulationSpeed = guiControl.addSlider("simulationSpeed")
+    .setPosition(1400,550)
+    .setSize(sliderSizeHeight,sliderSizeWidth)
+    .setRange(minSimulationSpeed,maxSimulationSpeed)
+    .setValue(simulationSpeed);
+    
+    
+  amountOfSimulationSpeed.onChange(new CallbackListener() {
+       public void controlEvent(CallbackEvent theEvent) {
+         
+         calculateSimulationSpeed(); 
+       }
+    });
+  
    
    
 }

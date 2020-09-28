@@ -193,6 +193,9 @@ void draw() {
     //
     checkElevatorExpulsion();
     
+    //this function checks whether or not there is a free elevator and another elevator has a queue size larger than 1, it will distribute the second job to the free elevator
+    distributeSystemTasks();
+    
     
     //if the event scheduler is being used in this instance of simulation
     if(eventSchedulerLoaded) {
@@ -237,6 +240,46 @@ void draw() {
     //if(buildingObjectsCreated) { testQueue(); }
     
   }
+  
+}
+
+
+void distributeSystemTasks() {
+  int indexOfTooBusyElevator = -1;
+  int sizeOfTooBusyElevator = -1;
+  int indexOfFreeElevator = -1; 
+  boolean elevatorDoingNothing = false; 
+  boolean elevatorTooBusy = false;
+  
+  for(int i = 0; i < elevators.size(); i++) {
+    
+    //trying to find an elevator that is not doing anything
+    if(elevators.get(i).serviceQueue.size() == 0) {
+      elevatorDoingNothing = true;
+      indexOfFreeElevator = i; 
+    }
+     
+    //trying to find a busy elevator
+    if(elevators.get(i).serviceQueue.size() > 1) {
+      
+      if(sizeOfTooBusyElevator < elevators.get(i).serviceQueue.size()) {
+        indexOfTooBusyElevator = i; 
+        sizeOfTooBusyElevator = elevators.get(i).serviceQueue.size();
+        elevatorTooBusy = true;
+      }
+    }
+   
+  }
+  
+  
+  //if there is an elevator with more than one job, and there is an elevator doing nothing -> give that extra job to the elevator doing nothing
+  if(elevatorDoingNothing & elevatorTooBusy) {
+    Job removedJob = elevators.get(indexOfTooBusyElevator).serviceQueue.remove(1);
+    elevators.get(indexOfFreeElevator).serviceQueue.add(removedJob);
+    System.out.println("Distributed a task -------------------------------------------------------------");
+    
+  }
+  
   
 }
 

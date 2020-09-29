@@ -183,7 +183,8 @@ void draw() {
     
     highRise.giveElevatorTasks();
   
-  
+   // System.out.println("frame");
+   
     //drawElevators();
     moveElevators();
     

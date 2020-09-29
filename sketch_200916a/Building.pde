@@ -156,6 +156,8 @@ class Building {
           elevators.get(i).getCabPassengers().get(0).flipRidingElevator();
           elevators.get(i).getCabPassengers().remove(0);
           elevators.get(i).getServiceQueue().remove(0);
+          elevators.get(i).setAtBottom();
+          //elevators.get(i).doorOpening = true;
           
         }
       

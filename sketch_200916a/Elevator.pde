@@ -57,6 +57,8 @@ class Elevator {
   boolean doorClosing = false; 
   boolean doorClosed  = true;
   
+  boolean bottomDoorOpen = false;
+  
   boolean needInstruction = false; 
   
   //where the elevator is in the animation process of opening the doors
@@ -212,6 +214,7 @@ class Elevator {
     
   }
   
+ 
   
   void animateDoorOpening() {
     
@@ -280,7 +283,7 @@ class Elevator {
     
    // System.out.println("Moving an elevator"); 
     
-    if(!(floor == 40)) {
+    if(!(floor == 40) & (!bottomDoorOpen) & (!doorOpening) & (!doorClosing)) {   
       cabPosY = cabPosY - floorsPerSecond;
     
       checkFloor();
@@ -324,17 +327,68 @@ class Elevator {
     }
     
     
+  
+    
     //if the current floor is less than the destination floor
     if(floor < currentDestination & serviceQueue.size() >=1) {
+      
+      //if we are in the case where we are at the bottom of the shaft opening the door
+       if(bottomDoorOpen) {
+        bottomDoorOpen = false;
+        openDoor(frameRate);
+      }
+      
+      //if the door is currently opening
+      if(doorOpening) {
+        //then the door is currently opening, need to tick the stopwatch keeping track of this elevators door opening animation
+        boolean openAnimationDone;
+        openAnimationDone = doorOpeningTimer.tickTime();
+        
+        //the door has opened all the way
+        if(openAnimationDone) {
+         // System.out.println("Closing door");       
+          closeDoor();
+          
+        } else {
+          //System.out.println("Animating door opening a bit more");
+          
+          
+        }
+        
+      }
+      
+      if(doorClosing) { 
+         boolean closingAnimationDone; 
+         closingAnimationDone = doorClosingTimer.tickTime();
+      
+        //the door has closed all the way
+        if(closingAnimationDone) {
+          
+          doorClosing = false;
+          bottomDoorOpen = false;
+          doorOpening = false;
+          //System.out.println("Done closing the door");
+        } else {
+          //System.out.println("Animating the door closing a bit more");
+        
+        }
+        
+        
+        
+      }
+      
       moveUp();
+      
+      
       
       //if the current floor is larger then the destination floor
     } else if (floor > currentDestination & serviceQueue.size() >=1) {
       moveDown();
     
     //the elevator has reached its destination -> open the door and wait for it to close again before continuing
-    } else if ((floor == currentDestination)&(!doorClosing) & serviceQueue.size() >=1) {
+    } else if (((floor == currentDestination)&(!doorClosing) & serviceQueue.size() >=1)) {
       
+    
       //if the door isn't already currently opening
       if(!(doorOpening)) {
         
@@ -344,7 +398,7 @@ class Elevator {
           
           } else { 
         
-            System.out.println("Calling openDoor(int frameRate);");
+            //System.out.println("Calling openDoor(int frameRate);");
             openDoor(frameRate);
           
           }
@@ -358,22 +412,36 @@ class Elevator {
         
         //the door has opened all the way
         if(openAnimationDone) {
-          System.out.println("Closing door");       
+          //System.out.println("Closing door");       
           closeDoor();
           
         } else {
-          System.out.println("Animating door opening a bit more");
+         // System.out.println("Animating door opening a bit more");
           
           
         }
         
-      } 
-      
+      }
+    
     } else if ((floor == currentDestination)&(doorClosing)) {
-      System.out.println("Passenger should get in the cab, and remove their job, passenger should be added to elevator cab, elevator cab should move onto its next destination");
-      doorClosing = false; 
+      
+      //System.out.println("Passenger should get in the cab, and remove their job, passenger should be added to elevator cab, elevator cab should move onto its next destination");
       doorOpening = false; 
-      needInstruction = true; 
+      
+      boolean closingAnimationDone; 
+      closingAnimationDone = doorClosingTimer.tickTime();
+      
+      //the door has closed all the way
+      if(closingAnimationDone) {
+        needInstruction = true;
+        doorClosing = false;
+        bottomDoorOpen = false;
+        doorOpening = false;
+       // System.out.println("Done closing the door");
+      } else {
+        //System.out.println("Animating the door closing a bit more");
+        
+      }
       
       
     }
@@ -383,9 +451,15 @@ class Elevator {
     
   }
   
+  void setAtBottom() {
+    bottomDoorOpen = true; 
+  }
+  
   //this will only be called once per opening of the door
   void openDoor(int frameRate) {
-    System.out.println("Inside openDoor(int frameRate)");
+   // System.out.println("Inside openDoor(int frameRate)");
+    
+   
     
     //calculate how many frames the timer should go on for 
     int totalDoorTime = doorTime*frameRate; 
@@ -396,19 +470,20 @@ class Elevator {
     doorClosing = false;
     doorOpeningTimer = new StopWatch(0,0,totalDoorTime,"doorOpening");
     
-    cabPosX = cabPosX - 7; 
+    //cabPosX = cabPosX - 7; 
     
-    cabPos2X = cabPos2X + 7;
+    //cabPos2X = cabPos2X + 7;
     
   }
   
   
   //this will only be called once per closing of the door
   void closeDoor() {
-    System.out.println("Inside closeDoor()");
+  //  System.out.println("Inside closeDoor()");
     
     doorOpening = false; 
     doorClosing = true; 
+    
     
     doorClosingTimer = new StopWatch(0,0,doorAnimationTime,"doorClosing");
     

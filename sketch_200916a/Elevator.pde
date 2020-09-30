@@ -53,6 +53,10 @@ class Elevator {
   int cabWidth = 20; 
   int cabHeight = 10;
   
+  
+  int jobsCompleted = 0; 
+  int framesSpentDoingNothing = 0; 
+  
   boolean doorOpening = false; 
   boolean doorClosing = false; 
   boolean doorClosed  = true;

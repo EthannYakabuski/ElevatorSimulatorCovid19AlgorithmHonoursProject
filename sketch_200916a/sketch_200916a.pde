@@ -62,7 +62,7 @@ int minElevatorDoorTime = 1;
 int elevatorDoorTime = 1;
 
 //if elevator speed is 1.0 this is equivalent to travelling at 1 floor per second
-float maxElevatorSpeed = 2.0;  //1 floor/0.5 seconds max speed
+float maxElevatorSpeed = 2.0;  //max speed is 2 floors per second - which is CONSIDERABLY fast for the average elevator installed into apartment buildings
 float minElevatorSpeed = 0.1; //floors per second  1 floor/10 seconds minimum speed
 float elevatorSpeed = 0.1; //floors per second
 
@@ -104,6 +104,7 @@ int currentFrame = 0;
 
 //list holding the elevators needed
 ArrayList<Elevator> elevators = new ArrayList<Elevator>();
+
 
 //if the building has been specified yet, activates "live" building mode, where you can see real time adjustments of
 boolean buildingSpecified = false;
@@ -181,7 +182,7 @@ void draw() {
     checkSimulationTime();
     
     
-    highRise.giveElevatorTasks();
+    highRise.giveElevatorTasks(elevatorAlgorithm);
   
    // System.out.println("frame");
    
@@ -197,6 +198,15 @@ void draw() {
     //this function checks whether or not there is a free elevator and another elevator has a queue size larger than 1, it will distribute the second job to the free elevator
     distributeSystemTasks();
     
+    //the developer has chosen that they wish to use the regular elevator algorithm, so check the extra cases where the elevator has to stop and pick up an extra passenger
+    if (elevatorAlgorithm == 1) {
+      checkExtraElevatorPickups();
+      
+    }
+    
+    //updates time information for passengers riding the elevators (time information for passengers waiting for elevator is updated 
+    //inside the building function, taking use of iteration work that has already been done to decrease overhead
+    updateStatisticsFrames();
     
     //if the event scheduler is being used in this instance of simulation
     if(eventSchedulerLoaded) {
@@ -242,8 +252,33 @@ void draw() {
     
   }
   
+
 }
 
+//this function is only ever called if the simulation is not using the COVID-19 elevator algorithm
+void checkExtraElevatorPickups() {
+  
+  
+  
+  
+  
+}
+
+void updateStatisticsFrames() {
+  
+  for(int i = 0; i < elevators.size(); i++) {
+    
+    for(int passenger = 0; passenger < elevators.get(i).getCabPassengers().size(); passenger++) {
+      
+      elevators.get(i).getCabPassengers().get(passenger).tickStatisticsFrames(); 
+      
+    }
+    
+    
+  }
+  
+  
+}
 
 void distributeSystemTasks() {
   int indexOfTooBusyElevator = -1;

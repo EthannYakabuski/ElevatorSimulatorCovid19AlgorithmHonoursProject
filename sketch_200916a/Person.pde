@@ -16,6 +16,9 @@ class Person {
   int floor; 
   int room;
   
+  int framesWaitedForElevator = 0;
+  int framesSpendOnElevator = 0; 
+  
   Person() {
     
   }
@@ -30,6 +33,31 @@ class Person {
   
   
   //getters and setters
+  void resetStatisticFrames() {
+    framesWaitedForElevator = 0; 
+    framesSpendOnElevator = 0; 
+    
+  }
+  
+  int getFramesWaitedForElevator() {
+    return framesWaitedForElevator;
+  }
+  int getFramesSpendOnElevator() {
+    return framesSpendOnElevator; 
+  }
+  
+  void tickStatisticsFrames() {
+    if(waiting) {
+      framesWaitedForElevator++; 
+    }
+    
+    if(ridingInElevator) {
+      framesSpendOnElevator++; 
+    }
+    
+  }
+  
+  
   void setJob(Job j) {
     currentTask = j; 
   }

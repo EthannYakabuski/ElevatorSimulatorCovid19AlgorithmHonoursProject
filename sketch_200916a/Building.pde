@@ -26,6 +26,10 @@ class Building {
     
   }
   
+  ArrayList<Floor> getFloors() {
+    return floors; 
+  }
+  
   void setNumRooms(int r) {
     numRooms = r; 
   }
@@ -278,6 +282,45 @@ void clear() {
   
   floors.clear();
   
+}
+
+
+//this function is used in conjunction with the regular elevator algorithm
+//this function returns a list of all people waiting on the given floor ->
+//the elevator will then take this list, add them to its cab and update their job pointers, incase a different elevator already accepted them
+ArrayList<Person> checkFloorAndAccept(int floorToCheck, int elevatorDestination) {
+  
+  ArrayList<Person> returnList = new ArrayList<Person>(); 
+  
+  
+  //check every person on the given floor and add them to the list if they are "waiting"
+  
+  for(int i = 0; i < numRooms; i++) {
+    
+    for(int person = 0; person < floors.get(floorToCheck).getRoomFromIndex(i).getTenantsList().size(); person++) {
+      
+      boolean addPerson = false; 
+      int personDestination = floors.get(floorToCheck).getRoomFromIndex(i).getTenantsList().get(person).getJob().getDestination(); 
+      
+      //if the the persons destination is bigger than the elevator destination, AND
+      //the persons destination is less than than the current floor of the elevator
+      if( (personDestination >= elevatorDestination) & (personDestination < floorToCheck) ) {
+        
+        //add the person to the return list
+        returnList.add(floors.get(floorToCheck).getRoomFromIndex(i).getTenantsList().get(person)); 
+        
+        
+      }
+      
+      
+      
+    }
+    
+    
+  }
+  
+  
+  return returnList;  
 }
 
 Person getPersonFromID(int PID) {

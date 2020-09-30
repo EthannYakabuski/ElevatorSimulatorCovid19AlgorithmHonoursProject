@@ -30,6 +30,10 @@ class Floor {
     rooms = roomsList; 
   }
   
+  ArrayList<Room> getRoomsList() {
+    return rooms; 
+  }
+  
   void addTenant(Person p, int room) {
    
     //if the requested room has not yet been created, create it and add to the backing arraylist
@@ -62,6 +66,22 @@ class Floor {
     
   }
   
+  boolean getFloorStatus() {
+    
+    boolean returnValue = false; 
+    
+    for(int i = 0; i < rooms.size(); i++) {
+      
+      //if any room on the floor has someone waiting, then the whole floor has a waiting status
+      if(rooms.get(i).determineStatus()) {
+        return true; 
+      }
+      
+    }
+    
+    return returnValue; 
+    
+  }
   
   
 }

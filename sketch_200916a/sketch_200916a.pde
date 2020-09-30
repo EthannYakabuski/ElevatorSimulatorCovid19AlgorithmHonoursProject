@@ -184,7 +184,7 @@ void draw() {
     
     highRise.giveElevatorTasks(elevatorAlgorithm);
   
-   // System.out.println("frame");
+    //System.out.println("frame");
    
     //drawElevators();
     moveElevators();
@@ -196,12 +196,12 @@ void draw() {
     checkElevatorExpulsion();
     
     //this function checks whether or not there is a free elevator and another elevator has a queue size larger than 1, it will distribute the second job to the free elevator
-    distributeSystemTasks();
+    if (elevatorAlgorithm == 0) { distributeSystemTasks(); }
     
     //the developer has chosen that they wish to use the regular elevator algorithm, so check the extra cases where the elevator has to stop and pick up an extra passenger
     if (elevatorAlgorithm == 1) {
       checkExtraElevatorPickups();
-      
+      checkMissedPickups();
     }
     
     //updates time information for passengers riding the elevators (time information for passengers waiting for elevator is updated 
@@ -255,10 +255,98 @@ void draw() {
 
 }
 
+void checkMissedPickups() {
+  
+  for(int i = 0; i < elevators.size(); i++) {
+    
+    if(Direction.STATIONARY == elevators.get(i).getDirection()) {
+      
+      
+    }
+      
+  }
+   
+}
+
 //this function is only ever called if the simulation is not using the COVID-19 elevator algorithm
 void checkExtraElevatorPickups() {
+  //System.out.println("Checking extra elevator pickups"); 
   
-  
+  for(int i = 0; i < elevators.size(); i++) {
+     
+    //if the elevator is currently going down, then it can pick up another passenger along the way if they are waiting
+    if(elevators.get(i).getDirection() == Direction.DOWN) {
+      
+      //if the floor that the elevator is currently on has someone waiting
+      if(highRise.getFloors().get(elevators.get(i).getFloor()-1).getFloorStatus()) {
+        
+        System.out.println("should stop and pick up all waiting passengers on this floor"); 
+        elevators.get(i).setExtraPassengerStop(true); 
+        
+        
+        //get the waiting people and add them to the elevator
+        //for each room in the highrise,
+        for(int x = 0; x < highRise.numRooms; x++) {
+          
+          //for each person in the given room
+          for(int y = 0; y < highRise.getFloors().get(elevators.get(i).getFloor()-1).getRoomsList().get(x).getTenantsList().size(); y++) {
+            
+            //if the person is waiting
+            if(highRise.getFloors().get(elevators.get(i).getFloor()-1).getRoomsList().get(x).getTenantsList().get(y).waiting) {
+              System.out.println("There is a person that needs to be added to the elevator cab"); 
+              
+              //set the person to be now riding the elevator
+              highRise.getFloors().get(elevators.get(i).getFloor()-1).getRoomsList().get(x).getTenantsList().get(y).flipRidingElevator();
+              
+              //add the person to the elevator cab
+              elevators.get(i).addPassenger(highRise.getFloors().get(elevators.get(i).getFloor()-1).getRoomsList().get(x).getTenantsList().get(y)); 
+              
+              //have the person leave the room
+              highRise.leaveRoom(highRise.getFloors().get(elevators.get(i).getFloor()-1).getRoomsList().get(x).getTenantsList().get(y)); 
+              
+              //set the job of the person to be picked up status
+              highRise.getFloors().get(elevators.get(i).getFloor()-1).getRoomsList().get(x).getTenantsList().get(y).getJob().setPickedUp(true); 
+              
+              //the only elevator that is now allowed to have this job
+              int safeElevator = i; 
+              int jobID = highRise.getFloors().get(elevators.get(i).getFloor()-1).getRoomsList().get(x).getTenantsList().get(y).getJob().getID();
+              
+              for(int elevatorNum = 0; elevatorNum < elevators.size(); elevatorNum++) {
+                
+                for(int cabSize = 0; cabSize < elevators.get(elevatorNum).getCabPassengers().size(); cabSize++) {
+                  
+                  if(jobID == elevators.get(elevatorNum).getCabPassengers().get(cabSize).getJob().getID()) {
+                    
+                    if(elevatorNum != safeElevator) {
+                      System.out.println("We have found a matching job, this job should be removed by elevator " + elevatorNum);  
+                      
+                      
+                    }
+                    
+                    
+                  }
+                  
+                }
+                
+                
+              }
+              
+              
+             //elevators.get(i).setNeedInstruction(true); 
+              
+            }
+            
+          }
+          
+        }
+        
+        
+      }
+    
+    }
+    
+    
+  }
   
   
   
@@ -922,11 +1010,12 @@ void drawElevatorTextInfo() {
   for(int i = 0; i < elevators.size(); i++) {
     text(i, 605, 30+i*37);
     text(elevators.get(i).getFloor(), 670, 30+i*37);
-    text(elevators.get(i).getPassengerNum(), 755, 30+i*37);
+    text(elevators.get(i).getCabPassengers().size(), 755, 30+i*37);
     text(elevators.get(i).getCapacity(), 830, 30+i*37);
     text(elevators.get(i).getCabSpeed(), 900, 30+i*37); 
     text(elevators.get(i).getDoorSpeed(), 970, 30+i*37); 
     
+    /*
     if(elevators.get(i).getStatus()) {
       
       text("busy", 1050, 30+i*37);
@@ -934,6 +1023,19 @@ void drawElevatorTextInfo() {
     } else {
       
       text("silent", 1050, 30+i*37);
+      
+    }
+    */
+    
+    
+    if(elevators.get(i).getDirection() == Direction.STATIONARY) {
+      text("still", 1050, 30+i*37);
+      
+    } else if (elevators.get(i).getDirection() == Direction.UP) {
+      text("up", 1050, 30+i*37);
+      
+    } else if (elevators.get(i).getDirection() == Direction.DOWN) {
+      text("down", 1050, 30+i*37);
       
     }
     

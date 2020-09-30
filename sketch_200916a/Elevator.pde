@@ -60,6 +60,8 @@ class Elevator {
   boolean doorOpening = false; 
   boolean doorClosing = false; 
   boolean doorClosed  = true;
+  boolean extraPassengerOpen = false; 
+  boolean extraPassengersStop = false; 
   
   boolean bottomDoorOpen = false;
   
@@ -132,11 +134,20 @@ class Elevator {
   int getDoorSpeed() { return doorTime; }
   boolean getStatus() { return busy; }
   Job getCurrentTask() { return currentTask; }
+  int getDestination() { return currentTask.getDestination(); }
+  Direction getDirection() { return direction; }
   
   boolean getNeedInstruction() { return needInstruction; }
   
   void setNeedInstruction(boolean b) {
     needInstruction = b; 
+  }
+  void setDestination(int floor) {
+    currentDestination = floor; 
+  }
+  
+  void setExtraPassengerStop(boolean e) {
+    extraPassengersStop = e; 
   }
   //getters and setters end
   
@@ -283,6 +294,8 @@ class Elevator {
   //moves the cab based on its speed for one frame
   void moveUp() {
     
+    direction = Direction.UP;
+    
    // System.out.println(cabPosY);
     
    // System.out.println("Moving an elevator"); 
@@ -299,7 +312,9 @@ class Elevator {
   //moves the cab based on its speed for one frame
   void moveDown() {
     
-    if(!(floor == 1)) {
+    direction = Direction.DOWN; 
+    
+    if(!(floor == 1) & (!bottomDoorOpen) & (!doorOpening) & (!doorClosing)) {
       cabPosY = cabPosY + floorsPerSecond; 
       
       checkFloor();
@@ -316,7 +331,7 @@ class Elevator {
     
    //System.out.println("Current framerate: " + frameRate); 
    //if this elevator has a Job to do
-    if(serviceQueue.size() >= 1) {
+    if(serviceQueue.size() >= 1 & (!extraPassengersStop)) {
       
       //if the job in the service queue at 0 has not been accepted yet
       if(serviceQueue.get(0).getPickedUp() == false) {
@@ -328,6 +343,18 @@ class Elevator {
         currentDestination = serviceQueue.get(0).getDestination();
         
       }
+      //there are some extra passengers to pick up (not this value will only ever be true when a non covid-19 algorithm has been chosen)
+    } else if (serviceQueue.size() >= 1 & (extraPassengersStop)) {
+      
+       currentDestination = floor; 
+      
+      
+      
+      //no job to do right now
+    } else {
+      direction = Direction.STATIONARY; 
+      
+      
     }
     
     
@@ -371,6 +398,7 @@ class Elevator {
           doorClosing = false;
           bottomDoorOpen = false;
           doorOpening = false;
+          extraPassengersStop = false; 
           //System.out.println("Done closing the door");
         } else {
           //System.out.println("Animating the door closing a bit more");
@@ -441,6 +469,7 @@ class Elevator {
         doorClosing = false;
         bottomDoorOpen = false;
         doorOpening = false;
+        extraPassengersStop = false; 
        // System.out.println("Done closing the door");
       } else {
         //System.out.println("Animating the door closing a bit more");
@@ -448,7 +477,7 @@ class Elevator {
       }
       
       
-    }
+    } 
     
     
     

@@ -5,6 +5,7 @@ class Job {
   int dest;
   int tripLength; 
   int roomDest; 
+  int whichElevatorComing = -1; 
   
   boolean elevatorComing = false;
   
@@ -44,6 +45,10 @@ class Job {
     return delayFrames; 
   }
   
+  int getWhichElevatorComing() {
+    return whichElevatorComing; 
+  }
+  
   void setDelay(int d) {
     delayFrames = d; 
   }
@@ -64,6 +69,10 @@ class Job {
   void tickAccepted() {
     
     elevatorAccepted++;
+  }
+  
+  void setWhichElevatorComing(int eC) {
+    whichElevatorComing = eC; 
   }
   
   int getElevatorAccepted() {

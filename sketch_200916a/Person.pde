@@ -20,7 +20,7 @@ class Person {
   int framesSpendOnElevator = 0; 
   
   Person() {
-    
+    personID = -1; 
   }
   
   Person(int pID, int fl, int ro) {

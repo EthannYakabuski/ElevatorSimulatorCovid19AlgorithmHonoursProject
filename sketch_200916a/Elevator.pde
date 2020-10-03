@@ -62,7 +62,7 @@ class Elevator {
   boolean doorClosed  = true;
   boolean extraPassengerOpen = false; 
   boolean extraPassengersStop = false; 
-  
+  boolean extraPickupAble = false; 
   boolean bottomDoorOpen = false;
   
   boolean needInstruction = false; 
@@ -112,6 +112,10 @@ class Elevator {
     cabPosY = cpY; 
   }
   
+  void setExtraPickupAble(boolean b) {
+    extraPickupAble = b; 
+  }
+  
   
   //tickers
   void tickMaxPass() { if(!(capacity>=20)) { capacity++; } }
@@ -136,6 +140,7 @@ class Elevator {
   Job getCurrentTask() { return currentTask; }
   int getDestination() { return currentTask.getDestination(); }
   Direction getDirection() { return direction; }
+  boolean getExtraPickupAble() { return extraPickupAble; }
   
   boolean getNeedInstruction() { return needInstruction; }
   
@@ -175,7 +180,8 @@ class Elevator {
     
   }
   
-  void acceptRequest(Job task) {
+  void acceptRequest(Job task, int whichElevator) {
+    task.setWhichElevatorComing(whichElevator); 
     serviceQueue.add(task);
     
   }
@@ -347,7 +353,7 @@ class Elevator {
     } else if (serviceQueue.size() >= 1 & (extraPassengersStop)) {
       
        currentDestination = floor; 
-      
+       
       
       
       //no job to do right now
@@ -366,6 +372,7 @@ class Elevator {
       //if we are in the case where we are at the bottom of the shaft opening the door
        if(bottomDoorOpen) {
         bottomDoorOpen = false;
+        System.out.println("Calling open door at the bottom of the shaft"); 
         openDoor(frameRate);
       }
       
@@ -399,6 +406,9 @@ class Elevator {
           bottomDoorOpen = false;
           doorOpening = false;
           extraPassengersStop = false; 
+          
+          if (elevatorAlgorithm == 1) { needInstruction = true; }
+          //needInstruction = true;
           //System.out.println("Done closing the door");
         } else {
           //System.out.println("Animating the door closing a bit more");
@@ -430,7 +440,7 @@ class Elevator {
           
           } else { 
         
-            //System.out.println("Calling openDoor(int frameRate);");
+            System.out.println("Calling openDoor(int frameRate);");
             openDoor(frameRate);
           
           }
@@ -488,11 +498,13 @@ class Elevator {
     bottomDoorOpen = true; 
   }
   
+ 
+  
   //this will only be called once per opening of the door
   void openDoor(int frameRate) {
    // System.out.println("Inside openDoor(int frameRate)");
     
-   
+  
     
     //calculate how many frames the timer should go on for 
     int totalDoorTime = doorTime*frameRate; 

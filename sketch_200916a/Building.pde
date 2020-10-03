@@ -137,7 +137,7 @@ class Building {
       
              floors.get(foundFloor).getRoomFromIndex(foundRoom).getTenantsList().get(foundPopulation).getJob().tickAccepted(); 
         
-             elevators.get(elevatorIndex).acceptRequest(floors.get(foundFloor).getRoomFromIndex(foundRoom).getTenantsList().get(foundPopulation).getJob()); 
+             elevators.get(elevatorIndex).acceptRequest(floors.get(foundFloor).getRoomFromIndex(foundRoom).getTenantsList().get(foundPopulation).getJob(), elevatorIndex); 
      
       
            }
@@ -325,8 +325,6 @@ ArrayList<Person> checkFloorAndAccept(int floorToCheck, int elevatorDestination)
 
 Person getPersonFromID(int PID) {
   
-  Person returnPerson = new Person(); 
-  
   for(int floor = 0; floor < numFloors; floor++) {
       
      for(int room = 0; room < numRooms; room++) {
@@ -338,7 +336,7 @@ Person getPersonFromID(int PID) {
            if(floors.get(floor).getRoomFromIndex(room).getTenantsList().get(population).getPID() == PID) {
              
              System.out.println("Match found");
-             returnPerson = floors.get(floor).getRoomFromIndex(room).getTenantsList().get(population);
+             return floors.get(floor).getRoomFromIndex(room).getTenantsList().get(population);
            }
          
          
@@ -351,9 +349,7 @@ Person getPersonFromID(int PID) {
     }
   
   
-  return returnPerson;
-  
-  
+  return new Person();
   
 }
 
@@ -401,6 +397,29 @@ void addJobFromPID(Job jobToAdd, int pID) {
   }
   
   
+}
+
+
+//returns the first person waiting for an elevator
+Person popPerson(int fl) {
+  
+  Person returnPerson = new Person(); 
+  
+  //for each room there is on the floor
+  for(int room = 0; room < roomsPerFloor; room++) {
+    
+   //for each tenant that is in the room 
+   for(int tenant = 0; tenant < floors.get(fl).getRoomFromIndex(room).getHomeSize(); tenant++) {
+     
+     //if there is a tenant waiting then return them and break
+     if(floors.get(fl).getRoomFromIndex(room).getWhoIsHome().get(tenant).waiting) {
+       
+       returnPerson = floors.get(fl).getRoomFromIndex(room).getWhoIsHome().get(tenant); 
+       break;
+     } 
+   }
+  }
+  return returnPerson;
 }
     
     

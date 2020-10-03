@@ -529,6 +529,9 @@ void moveElevators() {
 //this function will handle removing that person from the building, and adding them to the elevator
 void checkElevators() {
   for(int i = 0; i < elevators.size(); i++) {
+    
+    
+    
      
     if(elevators.get(i).getNeedInstruction() || elevators.get(i).getExtraPickupAble()) {
       

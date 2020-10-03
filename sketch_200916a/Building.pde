@@ -205,7 +205,13 @@ class Building {
     } else if (elevatorAlgorithm == 1) {
       
      // System.out.println("Using regular elevator algorithm"); 
-      
+     
+     
+      for(int i = 0; i < elevators.size(); i++) {
+        
+        
+        
+      }
       
       
       //these loops handle getting the jobs of the building and adding them to the master list
@@ -234,6 +240,7 @@ class Building {
       }
       
       
+  
       //these loops will handle giving tasks to elevators that are stationary. 
       //for each job in the master list that doesn't currently have an elevator coming
       for(int job = 0; job < masterJobs.size(); job++) {
@@ -249,9 +256,69 @@ class Building {
               masterJobs.get(job).elevatorComing = true; 
               elevators.get(elevator).acceptRequest(masterJobs.get(job),elevator);
             
-            }  
+            }
           
           }
+          
+        }
+        
+        
+      }
+      
+      //these loops will handle giving tasks to elevators that are currently moving down
+      //for each job in the master list
+      for(int job = 0; job < masterJobs.size(); job++) {
+        
+        //for each elevator
+        for(int elevator = 0; elevator < elevators.size(); elevator++) {
+          
+          //if the elevator is currently moving down
+          if(elevators.get(elevator).getDirection() == Direction.DOWN) {
+             
+            //if the person associated with the job has not been picked up yet
+            if(masterJobs.get(job).getPickedUp() == false) {
+              
+              //if the master jobs pickup location is the same as the elevator
+              if(masterJobs.get(job).getPickup() == elevators.get(elevator).getFloor()) {
+                
+                //if(elevators.get(elevator).extraStop == false) {
+                  //System.out.println("Giving elevator " + elevator + " a task - this is an EXTRA task"); 
+                  //make sure that this job id does not already exist in the service queue
+                  
+                  //for each job in the service queue
+                  for(int accepted = 0; accepted < elevators.get(elevator).getServiceQueue().size(); accepted++) {
+                    
+                    System.out.println("Service queue size: " + elevators.get(elevator).getServiceQueue().size()); 
+                    
+                    //if the elevator already has this job in its service queue, you don't want to create duplicate jobs
+                    if(elevators.get(elevator).getServiceQueue().get(accepted).getID() == masterJobs.get(job).getID()) {
+                      System.out.println("Matching job not adding"); 
+                      
+                    } else {
+                      System.out.println("EXTRA task added"); 
+                      masterJobs.get(job).elevatorComing = true; 
+                      //elevators.get(elevator).acceptRequest(masterJobs.get(job),elevator); 
+                      //elevators.get(elevator).getServiceQueue().add(masterJobs.get(job));
+                      elevators.get(elevator).setDestination(masterJobs.get(job).getPickup()); 
+                      elevators.get(elevator).extraStop = true; 
+                      
+                    }
+                    
+                    
+                  }
+                  
+                
+                //}
+                 
+              }
+              
+              
+            }
+            
+            
+          }
+          
+          
           
         }
         

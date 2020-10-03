@@ -65,6 +65,7 @@ class Elevator {
   boolean extraPickupAble = false; 
   boolean bottomDoorOpen = false;
   boolean justDropped = false; 
+  boolean extraStop = false; 
   
   boolean needInstruction = false; 
   

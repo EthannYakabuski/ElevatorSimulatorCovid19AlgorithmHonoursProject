@@ -8,6 +8,9 @@ class Building {
   
   ArrayList<Job> jobsBeingServed = new ArrayList<Job>();
   
+  
+  ArrayList<Job> masterJobs = new ArrayList<Job>();
+  
   //holds the information on how long people waited/spent in elevators
   ArrayList<PeopleStat> peopleStatistics = new ArrayList<PeopleStat>();
 
@@ -62,137 +65,245 @@ class Building {
   }
   
   void giveElevatorTasks(int elevatorAlgorithm) {
-    int foundFloor = -1; 
-    int foundRoom = -1;
-    int foundPopulation = -1;
-    //System.out.println("Giving elevators tasks");
     
-    if(elevatorAlgorithm == 0) {
-      //System.out.println("Using covid-19 algorithm"); 
+    if (elevatorAlgorithm == 0) {
+     // System.out.println("Using COVID-19 algorithm");
       
-    } else if (elevatorAlgorithm == 1) {
-      //System.out.println("Using regular elevator algorithm");
       
-    }
+      int foundFloor = -1; 
+      int foundRoom = -1;
+      int foundPopulation = -1;
+      //System.out.println("Giving elevators tasks");
+    
+      if(elevatorAlgorithm == 0) {
+        //System.out.println("Using covid-19 algorithm"); 
+      
+      } else if (elevatorAlgorithm == 1) {
+        //System.out.println("Using regular elevator algorithm");
+      
+      }
     
     
     
    
     
-      //these nested loops handle giving Jobs to elevators from people that are currently at home in their room
-      for(int floor = 0; floor < numFloors; floor++) {
+        //these nested loops handle giving Jobs to elevators from people that are currently at home in their room
+        for(int floor = 0; floor < numFloors; floor++) {
      
-        for(int room = 0; room < numRooms; room++) {
+          for(int room = 0; room < numRooms; room++) {
         
         
-          for(int population = 0; population < floors.get(floor).getRoomFromIndex(room).getSize(); population++) {
+            for(int population = 0; population < floors.get(floor).getRoomFromIndex(room).getSize(); population++) {
           
           
           
-            //if there is a person waiting
-            if(floors.get(floor).getRoomFromIndex(room).getTenantsList().get(population).waiting) {
+              //if there is a person waiting
+              if(floors.get(floor).getRoomFromIndex(room).getTenantsList().get(population).waiting) {
             
-              //System.out.println("There is a person waiting"); 
+                //System.out.println("There is a person waiting"); 
             
-              //if that persons job has not been accepted yet
-              if(floors.get(floor).getRoomFromIndex(room).getTenantsList().get(population).getJob().elevatorAccepted == 0) {
+                //if that persons job has not been accepted yet
+                if(floors.get(floor).getRoomFromIndex(room).getTenantsList().get(population).getJob().elevatorAccepted == 0) {
             
               
-                foundFloor = floor; 
-                foundRoom = room;
-                foundPopulation = population;
-                if (floors.get(floor).getRoomFromIndex(room).getTenantsList().get(population).getJob().getID() >= 0) { floors.get(floor).getRoomFromIndex(room).getTenantsList().get(population).getJob().setElevatorComing(true); }
+                  foundFloor = floor; 
+                  foundRoom = room;
+                  foundPopulation = population;
+                  if (floors.get(floor).getRoomFromIndex(room).getTenantsList().get(population).getJob().getID() >= 0) { floors.get(floor).getRoomFromIndex(room).getTenantsList().get(population).getJob().setElevatorComing(true); }
             
-                break;
+                  break;
+                }
               }
+          
+          
+          
             }
-          
-          
-          
+        
+        
+        
           }
-        
-        
-        
+      
         }
-      
-      }
     
     
-      //this if statement handles when the building doesn't have any jobs for the elevators
-      //the presence of this ID is the empty placeholder job request, no job actually exists
-      //the presenece of foundFloor being -1 is that there was no job found in the building that has not already been accepted by an elevator
-      if(!(foundFloor == -1)) {
-      if(floors.get(foundFloor).getRoomFromIndex(foundRoom).getTenantsList().get(foundPopulation).getJob().getID() == -1) {
-        System.out.println("No job to give");
+        //this if statement handles when the building doesn't have any jobs for the elevators
+        //the presence of this ID is the empty placeholder job request, no job actually exists
+        //the presenece of foundFloor being -1 is that there was no job found in the building that has not already been accepted by an elevator
+        if(!(foundFloor == -1)) {
+        if(floors.get(foundFloor).getRoomFromIndex(foundRoom).getTenantsList().get(foundPopulation).getJob().getID() == -1) {
+          System.out.println("No job to give");
       
-      } else { //a job exists
-        System.out.println("A Job exists -----------------------------------------------------------------");
+        } else { //a job exists
+          System.out.println("A Job exists -----------------------------------------------------------------");
       
      
       
-          if(floors.get(foundFloor).getRoomFromIndex(foundRoom).getTenantsList().get(foundPopulation).getJob().getElevatorAccepted() == 0) {
-             //System.out.println(ourTask.toString());
-             System.out.println("This task has not already been accepted");
-             int elevatorIndex = getFreeElevator(); 
+            if(floors.get(foundFloor).getRoomFromIndex(foundRoom).getTenantsList().get(foundPopulation).getJob().getElevatorAccepted() == 0) {
+               //System.out.println(ourTask.toString());
+               System.out.println("This task has not already been accepted");
+               int elevatorIndex = getFreeElevator(); 
       
-             floors.get(foundFloor).getRoomFromIndex(foundRoom).getTenantsList().get(foundPopulation).getJob().tickAccepted(); 
+               floors.get(foundFloor).getRoomFromIndex(foundRoom).getTenantsList().get(foundPopulation).getJob().tickAccepted(); 
         
-             elevators.get(elevatorIndex).acceptRequest(floors.get(foundFloor).getRoomFromIndex(foundRoom).getTenantsList().get(foundPopulation).getJob(), elevatorIndex); 
+               elevators.get(elevatorIndex).acceptRequest(floors.get(foundFloor).getRoomFromIndex(foundRoom).getTenantsList().get(foundPopulation).getJob(), elevatorIndex); 
      
       
-           }
+             }
         
       
        
       
+        }
+    
+    
       }
+  
+  
+  
+  
+      //this handles the elevators that are finished a task and need to now expel their passenger
+  
+  
+      for(int i = 0; i < elevators.size(); i++) { //for each elevator
     
+        if(elevators.get(i).serviceQueue.size() >= 1) {  //if the elevator has at least one task
+          Job elevatorsJob = elevators.get(i).getServiceQueue().get(0);
     
-    }
-  
-  
-  
-  
-    //this handles the elevators that are finished a task and need to now expel their passenger
-  
-  
-    for(int i = 0; i < elevators.size(); i++) { //for each elevator
-    
-      if(elevators.get(i).serviceQueue.size() >= 1) {  //if the elevator has at least one task
-        Job elevatorsJob = elevators.get(i).getServiceQueue().get(0);
-    
-        if(elevatorsJob.getDestination() == elevators.get(i).getFloor()) {  //if the elevator is currently on the floor of the task destination
+          if(elevatorsJob.getDestination() == elevators.get(i).getFloor()) {  //if the elevator is currently on the floor of the task destination
       
       
-          //if there is actually a person in the cab
-          if(elevators.get(i).getCabPassengers().size() >= 1) {
-          System.out.println("expelling passenger -------------------------");
+            //if there is actually a person in the cab
+            if(elevators.get(i).getCabPassengers().size() >= 1) {
+              System.out.println("expelling passenger -------------------------");
           
-            //expel the person who is associated with the current task
+              //expel the person who is associated with the current task
            
-            //covid-19 algorithm only has one cab passenger at a time ---- update later when other algorithms are added
-            System.out.println("Person leaving waited: " + elevators.get(i).getCabPassengers().get(0).getFramesWaitedForElevator() + " frames for an elevator to pick them up");
-            System.out.println("Person leaving spent: " + elevators.get(i).getCabPassengers().get(0).getFramesSpendOnElevator() + " frames on the elevator ride");
+              //covid-19 algorithm only has one cab passenger at a time ---- update later when other algorithms are added
+              System.out.println("Person leaving waited: " + elevators.get(i).getCabPassengers().get(0).getFramesWaitedForElevator() + " frames for an elevator to pick them up");
+              System.out.println("Person leaving spent: " + elevators.get(i).getCabPassengers().get(0).getFramesSpendOnElevator() + " frames on the elevator ride");
           
-            //add this PeopleStat to the arraylist storing the PeopleStat's
-            peopleStatistics.add(new PeopleStat(elevators.get(i).getCabPassengers().get(0).getFramesWaitedForElevator(),elevators.get(i).getCabPassengers().get(0).getFramesSpendOnElevator()));
+              //add this PeopleStat to the arraylist storing the PeopleStat's
+              peopleStatistics.add(new PeopleStat(elevators.get(i).getCabPassengers().get(0).getFramesWaitedForElevator(),elevators.get(i).getCabPassengers().get(0).getFramesSpendOnElevator()));
           
           
-            elevators.get(i).getCabPassengers().get(0).flipRidingElevator();
-            elevators.get(i).getCabPassengers().remove(0);
-            elevators.get(i).getServiceQueue().remove(0);
-            elevators.get(i).setAtBottom();
-            //elevators.get(i).doorOpening = true;
+              elevators.get(i).getCabPassengers().get(0).flipRidingElevator();
+              elevators.get(i).getCabPassengers().remove(0);
+              elevators.get(i).getServiceQueue().remove(0);
+              elevators.get(i).setAtBottom();
+              //elevators.get(i).doorOpening = true;
+          
+            }
+      
+         }
+     
+        }
+    
+    
+    
+      }
+      
+    } else if (elevatorAlgorithm == 1) {
+      
+     // System.out.println("Using regular elevator algorithm"); 
+      
+      
+      
+      //these loops handle getting the jobs of the building and adding them to the master list
+      //a master list is more important in the regulat elevator algorithm scenario due to need 
+      //of updating elevators that another cab may be "stealing" a passenger from
+      
+      //for each job in the building, add it to the master list
+      for(int floor = 0; floor < numFloors; floor++) {
+       
+        for(int room = 0; room < roomsPerFloor; room++) {
+          
+          for(int population = 0; population < floors.get(floor).getRoomFromIndex(room).getSize(); population++) {
+            
+             if( !(floors.get(floor).getRoomFromIndex(room).getTenantsList().get(population).getJob().addedToList)) {
+               
+               //the job has not been added to the master list yet
+               //if the job is now the default job
+               if(!(floors.get(floor).getRoomFromIndex(room).getTenantsList().get(population).getJob().getID() == -1)) {
+                 System.out.println("Adding a job to the master list"); 
+                 floors.get(floor).getRoomFromIndex(room).getTenantsList().get(population).getJob().addedToList = true;
+                 masterJobs.add(floors.get(floor).getRoomFromIndex(room).getTenantsList().get(population).getJob());
+               }
+             }
+          } 
+        } 
+      }
+      
+      
+      //these loops will handle giving tasks to elevators that are stationary. 
+      //for each job in the master list that doesn't currently have an elevator coming
+      for(int job = 0; job < masterJobs.size(); job++) {
+        
+        if(!(masterJobs.get(job).elevatorComing)) {
+          // for each elevator
+          for(int elevator = 0; elevator < elevators.size(); elevator++) {
+          
+          
+            if(elevators.get(elevator).getDirection() == Direction.STATIONARY) {
+              System.out.println("Giving elevator " + elevator + " a task");
+            
+              masterJobs.get(job).elevatorComing = true; 
+              elevators.get(elevator).acceptRequest(masterJobs.get(job),elevator);
+            
+            }  
           
           }
-      
-       }
-     
+          
+        }
+        
+        
       }
-    
-    
-    
-    }
+      
+      
+      
+      
+      //these loops will handle the elevators that are done a job and now need to expel their passenger
+      for(int i = 0; i < elevators.size(); i++) {
+        
+        //if there is at least one job
+        if(elevators.get(i).getServiceQueue().size() >= 1) {
+          
+          
+          //for each person in the cab check if their jobs destination floor is equal to floor of the elevator
+          for(int person = 0; person < elevators.get(i).getCabPassengers().size(); person++) {
+            
+            if(elevators.get(i).getFloor() == elevators.get(i).getCabPassengers().get(person).getJob().getDestination()) {
+              
+              System.out.println("Expelling passenger -------"); 
+              
+              
+              System.out.println("Person leaving waited: " + elevators.get(i).getCabPassengers().get(person).getFramesWaitedForElevator() + " frames for an elevator to pick them up");
+              System.out.println("Person leaving spent: " + elevators.get(i).getCabPassengers().get(person).getFramesSpendOnElevator() + " frames on the elevator ride");
+          
+              peopleStatistics.add(new PeopleStat(elevators.get(i).getCabPassengers().get(person).getFramesWaitedForElevator(),elevators.get(i).getCabPassengers().get(person).getFramesSpendOnElevator()));
+              
+              elevators.get(i).getCabPassengers().get(person).flipRidingElevator();
+              
+              elevators.get(i).getServiceQueue().remove(elevators.get(i).getCabPassengers().get(person).getJob()); 
+              elevators.get(i).getCabPassengers().remove(person);
+              
+              elevators.get(i).setNeedInstruction(true); 
+              elevators.get(i).setJustDropped(true);  
+            }
+            
+            
+          }
+          
+        }
+        
+        
+      }
+      
+      
+      
+      
+      
+   
+    }  //elevator algorithm 1 done
  
    } 
     

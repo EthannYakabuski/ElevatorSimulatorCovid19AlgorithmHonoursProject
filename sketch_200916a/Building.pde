@@ -278,32 +278,31 @@ class Building {
          
          for(int elevator = 0; elevator < elevators.size(); elevator++) {
            
-           boolean acceptedOne = false; 
-           
+           boolean acceptedOne = false;
+           //for each job in the master job
            for(int job = 0; job < masterJobs.size(); job++) {
              
-             
+             if(acceptedOne == false) {
+             //if this job has not already been accepted
              if(masterJobs.get(job).elevatorComing == false) {
                
-               if(acceptedOne == false) {
+               if(alreadyAccepted(elevator, masterJobs.get(job).getID())) {
+                 System.out.println("This job has already been accepted"); 
+                 
+               } else {
+                 
                  masterJobs.get(job).elevatorComing = true; 
-                 System.out.println("Choosing a base request"); 
                  elevators.get(elevator).acceptRequest(masterJobs.get(job),elevator); 
-               
+                 
                  acceptedOne = true; 
-                 
-                 
-                 acceptAllOnPath(elevator,masterJobs.get(job));
-                 break;
+                 System.out.println("---------------------------------------------------------------- added a job"); 
+                 acceptAllOnPath(elevator,masterJobs.get(job)); 
                }
-               
+          
              }
-             
-             
-             
+       
            }
-           
-           
+           }
            
          }
       
@@ -428,7 +427,22 @@ class Building {
     }  //elevator algorithm 1 done
  
    } 
+   
     
+  boolean alreadyAccepted(int elevatorNum, int jobID) {
+    
+    for(int i = 0; i < elevators.get(elevatorNum).getServiceQueue().size(); i++) {
+      
+      if(elevators.get(elevatorNum).getServiceQueue().get(i).getID() == jobID) {
+       return true;  
+      }
+      
+    }
+    
+    
+    return false;
+    
+  }
     
   void acceptAllOnPath(int elevatorNum, Job jobAccepted) {
     int pickup = jobAccepted.getPickup(); 
@@ -457,12 +471,16 @@ class Building {
           //then make sure that you are not adding other jobs that you have already added before
           for(int trying = 0; trying < elevators.get(elevatorNum).getServiceQueue().size(); trying++) {
             
-            if(elevators.get(elevatorNum).getServiceQueue().get(trying).getID() == masterJobs.get(job).getID()) {
+            if( alreadyAccepted(elevatorNum, masterJobs.get(job).getID())) {
               System.out.println("Already have this job in the queue"); 
+              System.out.println(masterJobs.get(job).getID() + "-> matched");
               alreadyHaveJob = true;
               break;
             } else {
-              System.out.println("Accepting a job that was along the path of the initial job that was accepted by elevator : " + elevatorNum);
+              //System.out.println("Accepting a job that was along the path of the initial job that was accepted by elevator : " + elevatorNum);
+              System.out.println("------------------------------------------------------------------------------------------------------------------------------------------------- added a job");
+              System.out.println(masterJobs.get(job).getID() + "-> jobID"); 
+              System.out.println(elevators.get(elevatorNum).getServiceQueue().get(trying).getID() +"-> jobID from the elevators"); 
               masterJobs.get(job).elevatorComing = true; 
               elevators.get(elevatorNum).acceptRequest(masterJobs.get(job),elevatorNum);
               

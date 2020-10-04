@@ -184,7 +184,7 @@ class Elevator {
     
   }
   
-  void acceptRequest(Job task, int whichElevator) {
+  void acceptRequest (Job task, int whichElevator) {
     task.setWhichElevatorComing(whichElevator); 
     serviceQueue.add(task);
     

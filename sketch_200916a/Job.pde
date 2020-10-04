@@ -12,6 +12,7 @@ class Job {
   boolean pickedUp = false;
   boolean droppedOff = false; 
   boolean addedToList = false; 
+  boolean given = false; 
   
   int elevatorAccepted = 0; 
   

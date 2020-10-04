@@ -205,17 +205,14 @@ class Building {
     } else if (elevatorAlgorithm == 1) {
       
      // System.out.println("Using regular elevator algorithm"); 
+     for(int b = 0; b < elevators.size(); b++) {
+       System.out.println("service queue size of elevator " + b + " is : " + elevators.get(b).getServiceQueue().size()); 
+     }
      
-     
-      for(int i = 0; i < elevators.size(); i++) {
-        
-        
-        
-      }
-      
+    
       
       //these loops handle getting the jobs of the building and adding them to the master list
-      //a master list is more important in the regulat elevator algorithm scenario due to need 
+      //a master list is more important in the regular elevator algorithm scenario due to need 
       //of updating elevators that another cab may be "stealing" a passenger from
       
       //for each job in the building, add it to the master list
@@ -239,8 +236,8 @@ class Building {
         } 
       }
       
+      /*
       
-  
       //these loops will handle giving tasks to elevators that are stationary. 
       //for each job in the master list that doesn't currently have an elevator coming
       for(int job = 0; job < masterJobs.size(); job++) {
@@ -252,9 +249,14 @@ class Building {
           
             if(elevators.get(elevator).getDirection() == Direction.STATIONARY) {
               System.out.println("Giving elevator " + elevator + " a task");
-            
-              masterJobs.get(job).elevatorComing = true; 
-              elevators.get(elevator).acceptRequest(masterJobs.get(job),elevator);
+              
+              if(masterJobs.get(job).elevatorComing == false) {
+              
+                masterJobs.get(job).elevatorComing = true; 
+                elevators.get(elevator).acceptRequest(masterJobs.get(job),elevator);
+                
+                
+              }
             
             }
           
@@ -264,6 +266,55 @@ class Building {
         
         
       }
+      */
+      
+      
+      //these loops will handle giving tasks to elevators that are stationary
+      //for each elevator,
+      
+      //accept the first unaccepted job 
+      
+         //then -> accept all jobs on the path of that job
+         
+         for(int elevator = 0; elevator < elevators.size(); elevator++) {
+           
+           boolean acceptedOne = false; 
+           
+           for(int job = 0; job < masterJobs.size(); job++) {
+             
+             
+             if(masterJobs.get(job).elevatorComing == false) {
+               
+               if(acceptedOne == false) {
+                 masterJobs.get(job).elevatorComing = true; 
+                 System.out.println("Choosing a base request"); 
+                 elevators.get(elevator).acceptRequest(masterJobs.get(job),elevator); 
+               
+                 acceptedOne = true; 
+                 
+                 
+                 acceptAllOnPath(elevator,masterJobs.get(job));
+                 break;
+               }
+               
+             }
+             
+             
+             
+           }
+           
+           
+           
+         }
+      
+      
+      
+      
+      
+      
+      
+      
+      
       
       //these loops will handle giving tasks to elevators that are currently moving down
       //for each job in the master list
@@ -350,8 +401,12 @@ class Building {
               
               elevators.get(i).getCabPassengers().get(person).flipRidingElevator();
               
+              masterJobs.remove(elevators.get(i).getCabPassengers().get(person).getJob()); 
+              
               elevators.get(i).getServiceQueue().remove(elevators.get(i).getCabPassengers().get(person).getJob()); 
               elevators.get(i).getCabPassengers().remove(person);
+              
+              
               
               elevators.get(i).setNeedInstruction(true); 
               elevators.get(i).setJustDropped(true);  
@@ -374,6 +429,54 @@ class Building {
  
    } 
     
+    
+  void acceptAllOnPath(int elevatorNum, Job jobAccepted) {
+    int pickup = jobAccepted.getPickup(); 
+    int destination = jobAccepted.getDestination(); 
+    
+    
+    //for each job in the master list, give the elevator at elevatorNum all the jobs inbetween its accepted job
+    for(int job = 0; job < masterJobs.size(); job++) {
+      
+      
+      int extraPickup = masterJobs.get(job).getPickup(); 
+      int extraDestination = masterJobs.get(job).getDestination(); 
+      
+      
+      //accept all jobs that have a pickup location less than or equal to the initial pickup location, but also destination is larger than or equal to the initial destination
+      if( (extraPickup <= pickup) & (destination <= extraDestination )) {
+        
+       
+        //masterJobs.get(job).elevatorComing = true; 
+        //elevators.get(elevator).acceptRequest(masterJobs.get(job),elevator); 
+        
+        //first make sure that this is not the same job as the initial job
+        if( jobAccepted.getID() != masterJobs.get(job).getID()) {
+          
+          boolean alreadyHaveJob = false; 
+          //then make sure that you are not adding other jobs that you have already added before
+          for(int trying = 0; trying < elevators.get(elevatorNum).getServiceQueue().size(); trying++) {
+            
+            if(elevators.get(elevatorNum).getServiceQueue().get(trying).getID() == masterJobs.get(job).getID()) {
+              System.out.println("Already have this job in the queue"); 
+              alreadyHaveJob = true;
+              break;
+            } else {
+              System.out.println("Accepting a job that was along the path of the initial job that was accepted by elevator : " + elevatorNum);
+              masterJobs.get(job).elevatorComing = true; 
+              elevators.get(elevatorNum).acceptRequest(masterJobs.get(job),elevatorNum);
+              
+            }
+            
+          }
+        }
+        
+      }
+      
+    }
+    
+    
+  }
   
   int getFreeElevator() {
     int indexOfLeastBusyElevator = -1; 

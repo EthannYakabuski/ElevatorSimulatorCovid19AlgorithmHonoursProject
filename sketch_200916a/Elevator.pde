@@ -410,6 +410,11 @@ class Elevator {
             bottomDoorOpen = false;
             doorOpening = false;
             extraPassengersStop = false; 
+            
+            //??? then check to see if there are more jobs in the service queue, if so update the destination of this elevator?
+            //if(serviceQueue.size() >= 1) { 
+              //currentDestination = serviceQueue.get(0).getPickup(); 
+           // }
           
             if (elevatorAlgorithm == 1) { needInstruction = true; }
             //needInstruction = true;
@@ -499,7 +504,7 @@ class Elevator {
       
       
       //if the elevator is currently stationary, then the elevators destination needs to be updated
-      if(direction == Direction.STATIONARY) {
+      if(direction == Direction.STATIONARY & (!doorOpening) & (!doorClosing)) {
         //if there is actually a job
         if(serviceQueue.size() >= 1) {
           //if the first job in the service queue has not been accepted yet set that jobs pickup location as the destination
@@ -533,10 +538,11 @@ class Elevator {
           if(currentDestination != -1) { openDoor(frameRate); }
         }
         
-       
+        System.out.println("Door opening: " + doorOpening); 
         //if the door is opening, need to tick the stopwatch 
         if(doorOpening == true) {
           
+          System.out.println("Ticking door"); 
           boolean openingAnimationDone = false; 
           openingAnimationDone = doorOpeningTimer.tickTime();
         
@@ -587,7 +593,7 @@ class Elevator {
   
   //this will only be called once per opening of the door
   void openDoor(int frameRate) {
-   // System.out.println("Inside openDoor(int frameRate)");
+    System.out.println("Inside openDoor(int frameRate)");
     
     direction = Direction.STATIONARY; 
     

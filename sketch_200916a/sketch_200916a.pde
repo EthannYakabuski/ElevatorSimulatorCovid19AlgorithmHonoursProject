@@ -293,6 +293,54 @@ void updateStatisticsFrames() {
   
 }
 
+//this algorithm will be responsible for distributing the elevator tasks
+//for when one elevator is too busy and other elevators are not doing something
+void regularAlgorithmDistributeSystemTasks() {
+  int indexOfTooBusyElevator = -1; 
+  int sizeOfTooBusyElevator = -1; 
+  int indexOfFreeElevator = -1; 
+  
+  boolean elevatorDoingNothing = false; 
+  boolean elevatorTooBusy = false; 
+ 
+  //for each elevator
+  for(int i = 0; i < elevators.size(); i++) {
+    
+    //trying to find an elevator that is not doing anything
+    if(elevators.get(i).serviceQueue.size() == 0) {
+      elevatorDoingNothing = true; 
+      indexOfFreeElevator = i; 
+    }
+    
+    //trying to find a busy elevator
+    if(elevators.get(i).serviceQueue.size() > 1) {
+      
+      if(sizeOfTooBusyElevator < elevators.get(i).serviceQueue.size()) {
+        indexOfTooBusyElevator = i; 
+        sizeOfTooBusyElevator = elevators.get(i).serviceQueue.size(); 
+        elevatorTooBusy = true; 
+        
+      }
+      
+      
+    }
+    
+  }
+  
+  if(elevatorDoingNothing & elevatorTooBusy) {
+    
+   // Job removedJob = elevators.get(indexOfTooBusyElevator).serviceQueue.remove(1);
+    //elevators.get(indexOfFreeElevator).serviceQueue.add(removedJob);
+   // System.out.println("Distributed a task -------------------------------------------------------------"); 
+   
+    
+  }
+  
+  
+  
+  
+}
+
 void distributeSystemTasks() {
   int indexOfTooBusyElevator = -1;
   int sizeOfTooBusyElevator = -1;
@@ -301,13 +349,12 @@ void distributeSystemTasks() {
   boolean elevatorTooBusy = false;
   
   for(int i = 0; i < elevators.size(); i++) {
-    
     //trying to find an elevator that is not doing anything
     if(elevators.get(i).serviceQueue.size() == 0) {
       elevatorDoingNothing = true;
       indexOfFreeElevator = i; 
     }
-     
+ 
     //trying to find a busy elevator
     if(elevators.get(i).serviceQueue.size() > 1) {
       
@@ -317,20 +364,17 @@ void distributeSystemTasks() {
         elevatorTooBusy = true;
       }
     }
-   
   }
-  
-  
+ 
   //if there is an elevator with more than one job, and there is an elevator doing nothing -> give that extra job to the elevator doing nothing
   if(elevatorDoingNothing & elevatorTooBusy) {
     Job removedJob = elevators.get(indexOfTooBusyElevator).serviceQueue.remove(1);
     elevators.get(indexOfFreeElevator).serviceQueue.add(removedJob);
-    System.out.println("Distributed a task -------------------------------------------------------------");
-    
+    System.out.println("Distributed a task -------------------------------------------------------------"); 
   }
   
-  
 }
+
 
 void testDelayedPassengerRequests() {
   if(numFloors > 10 & roomsPerFloor > 6) {

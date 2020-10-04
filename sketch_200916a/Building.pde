@@ -206,7 +206,7 @@ class Building {
       
      // System.out.println("Using regular elevator algorithm"); 
      for(int b = 0; b < elevators.size(); b++) {
-       System.out.println("service queue size of elevator " + b + " is : " + elevators.get(b).getServiceQueue().size()); 
+       //System.out.println("service queue size of elevator " + b + " is : " + elevators.get(b).getServiceQueue().size()); 
      }
      
     

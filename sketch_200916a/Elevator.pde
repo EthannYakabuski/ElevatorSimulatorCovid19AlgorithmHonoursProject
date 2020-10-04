@@ -538,11 +538,11 @@ class Elevator {
           if(currentDestination != -1) { openDoor(frameRate); }
         }
         
-        System.out.println("Door opening: " + doorOpening); 
+        //System.out.println("Door opening: " + doorOpening); 
         //if the door is opening, need to tick the stopwatch 
         if(doorOpening == true) {
           
-          System.out.println("Ticking door"); 
+          //System.out.println("Ticking door"); 
           boolean openingAnimationDone = false; 
           openingAnimationDone = doorOpeningTimer.tickTime();
         

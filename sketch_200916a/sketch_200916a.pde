@@ -171,6 +171,8 @@ void draw() {
   
   drawElevators();
   
+  
+  
   if(simulationStarted) {
     if(eventSchedulerLoaded) { tickEventScheduler(); }
     
@@ -194,14 +196,14 @@ void draw() {
     
     //checkElevatorStop(); 
    
-  
+    
     //
     checkElevatorExpulsion();
     
     //this function checks whether or not there is a free elevator and another elevator has a queue size larger than 1, it will distribute the second job to the free elevator
     if (elevatorAlgorithm == 0) { distributeSystemTasks(); }
    
-    
+    if (elevatorAlgorithm == 1) { regularAlgorithmDistributeSystemTasks(); }
     //updates time information for passengers riding the elevators (time information for passengers waiting for elevator is updated 
     //inside the building function, taking use of iteration work that has already been done to decrease overhead
     updateStatisticsFrames();
@@ -250,9 +252,21 @@ void draw() {
     
   }
   
+  
+  writeElevatorsQueueSize();
+  
 
 }
 
+void writeElevatorsQueueSize() {
+  for(int i = 0; i < elevators.size(); i++) {
+    
+    System.out.println("Elevator " + i + "has queue size " + elevators.get(i).getServiceQueue().size()); 
+    
+  }
+  
+  
+}
 
 void checkElevatorStopped() {
   for(int i = 0; i < elevators.size(); i++) {
@@ -332,6 +346,13 @@ void regularAlgorithmDistributeSystemTasks() {
    // Job removedJob = elevators.get(indexOfTooBusyElevator).serviceQueue.remove(1);
     //elevators.get(indexOfFreeElevator).serviceQueue.add(removedJob);
    // System.out.println("Distributed a task -------------------------------------------------------------"); 
+   
+   //if we are in this loop then we can guarantee: there is at least one elevator not doing any task
+   //and there is also one elevator with some extra tasks
+   
+   Job removedJob = elevators.get(indexOfTooBusyElevator).serviceQueue.remove(1); 
+   elevators.get(indexOfFreeElevator).serviceQueue.add(removedJob); 
+   System.out.println("Distributed a task --------------------------------------------------------"); 
    
     
   }

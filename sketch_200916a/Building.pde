@@ -212,7 +212,7 @@ class Building {
     
       
       //these loops handle getting the jobs of the building and adding them to the master list
-      //a master list is more important in the regular elevator algorithm scenario due to need 
+      //a master list is more important in the regular elevator algordiithm scenario due to need 
       //of updating elevators that another cab may be "stealing" a passenger from
       
       //for each job in the building, add it to the master list
@@ -477,12 +477,19 @@ class Building {
               alreadyHaveJob = true;
               break;
             } else {
-              //System.out.println("Accepting a job that was along the path of the initial job that was accepted by elevator : " + elevatorNum);
-              System.out.println("------------------------------------------------------------------------------------------------------------------------------------------------- added a job");
-              System.out.println(masterJobs.get(job).getID() + "-> jobID"); 
-              System.out.println(elevators.get(elevatorNum).getServiceQueue().get(trying).getID() +"-> jobID from the elevators"); 
-              masterJobs.get(job).elevatorComing = true; 
-              elevators.get(elevatorNum).acceptRequest(masterJobs.get(job),elevatorNum);
+              
+              //first have to make sure this job isn't currently owned by any OTHER elevator
+              if(masterJobs.get(job).elevatorComing == false) {
+                //System.out.println("Accepting a job that was along the path of the initial job that was accepted by elevator : " + elevatorNum);
+                System.out.println("------------------------------------------------------------------------------------------------------------------------------------------------- added a job");
+                System.out.println(masterJobs.get(job).getID() + "-> jobID"); 
+                System.out.println(elevators.get(elevatorNum).getServiceQueue().get(trying).getID() +"-> jobID from the elevators"); 
+                masterJobs.get(job).elevatorComing = true; 
+                elevators.get(elevatorNum).acceptRequest(masterJobs.get(job),elevatorNum);
+              } else {
+                System.out.println("Not stealing this task");  
+                
+              }
               
             }
             

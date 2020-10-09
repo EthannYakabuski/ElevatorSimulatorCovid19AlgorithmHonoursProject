@@ -66,6 +66,10 @@ class Elevator {
   boolean bottomDoorOpen = false;
   boolean justDropped = false; 
   boolean extraStop = false; 
+  boolean multiDoorIssue = false; 
+  
+  
+  boolean openedDoorFloor = false; 
   
   boolean needInstruction = false; 
   
@@ -140,7 +144,7 @@ class Elevator {
   int getDoorSpeed() { return doorTime; }
   boolean getStatus() { return busy; }
   Job getCurrentTask() { return currentTask; }
-  int getDestination() { return currentTask.getDestination(); }
+  int getDestination() { return currentDestination; }
   Direction getDirection() { return direction; }
   boolean getExtraPickupAble() { return extraPickupAble; }
   
@@ -248,6 +252,9 @@ class Elevator {
   
   
   void checkFloor() {
+    int initialFloor = floor; 
+    
+    
     //slightly larger on purpose
     if ( (cabPosY <= 960) & (cabPosY > 945)) { floor = 1; }
     //purposeful gap -> makes sure elevators go all the way to the bottom of the floor as would a normal elevator 
@@ -296,7 +303,11 @@ class Elevator {
    // if ( (cabPosY <= 375) & (cabPosY > 360)) { floor = 39; }
    // if ( (cabPosY <= 360) & (cabPosY > 345)) { floor = 40; }
     
-    
+    if(initialFloor == floor) {
+      
+    } else {
+      openedDoorFloor = false;  
+    }
     
     
   }
@@ -504,16 +515,17 @@ class Elevator {
       
       
       //if the elevator is currently stationary, then the elevators destination needs to be updated
-      if(direction == Direction.STATIONARY & (!doorOpening) & (!doorClosing)) {
+      if((direction == Direction.STATIONARY & (!doorOpening) & (!doorClosing)) || multiDoorIssue) {
         //if there is actually a job
+        multiDoorIssue = false;
         if(serviceQueue.size() >= 1) {
           //if the first job in the service queue has not been accepted yet set that jobs pickup location as the destination
           if(serviceQueue.get(0).getPickedUp() == false) {
-            System.out.println("Setting destination: floor " + serviceQueue.get(0).getPickup()); 
+            System.out.println("Setting destination: floor from a pickup " + serviceQueue.get(0).getPickup()); 
             currentDestination = serviceQueue.get(0).getPickup();
             
           } else if (serviceQueue.get(0).getPickedUp() == true) { //if the first job in the service queue has been accepted, then set that jobs destination location as the destination
-            System.out.println("Setting destination: floor " + serviceQueue.get(0).getDestination()); 
+            System.out.println("Setting destination: floor  from a drop off " + serviceQueue.get(0).getDestination()); 
             currentDestination = serviceQueue.get(0).getDestination(); 
             
             
@@ -535,14 +547,22 @@ class Elevator {
         //if the door is not already opening & the door is not already closing -> then you need to open the door
         if(doorOpening == false & doorClosing == false) {
           
-          if(currentDestination != -1) { openDoor(frameRate); }
+          if(currentDestination != -1) { 
+            if(openedDoorFloor == false) {
+              openDoor(frameRate); 
+            } else {
+              System.out.println("you already opened your door on this floor, give it up"); 
+              currentDestination = 0; 
+              multiDoorIssue = true; 
+            }
+        }
         }
         
-        System.out.println("Door opening: " + doorOpening); 
+        //System.out.println("Door opening: " + doorOpening); 
         //if the door is opening, need to tick the stopwatch 
         if(doorOpening == true) {
           
-          System.out.println("Ticking door"); 
+          //System.out.println("Ticking door"); 
           boolean openingAnimationDone = false; 
           openingAnimationDone = doorOpeningTimer.tickTime();
         
@@ -594,6 +614,8 @@ class Elevator {
   //this will only be called once per opening of the door
   void openDoor(int frameRate) {
     System.out.println("Inside openDoor(int frameRate)");
+    
+    openedDoorFloor = true; 
     
     direction = Direction.STATIONARY; 
     

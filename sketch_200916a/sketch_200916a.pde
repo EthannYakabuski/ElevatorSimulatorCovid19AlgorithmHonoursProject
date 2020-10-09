@@ -171,6 +171,8 @@ void draw() {
   
   drawElevators();
   
+  
+  
   if(simulationStarted) {
     if(eventSchedulerLoaded) { tickEventScheduler(); }
     
@@ -194,14 +196,14 @@ void draw() {
     
     //checkElevatorStop(); 
    
-  
+    
     //
     checkElevatorExpulsion();
     
     //this function checks whether or not there is a free elevator and another elevator has a queue size larger than 1, it will distribute the second job to the free elevator
     if (elevatorAlgorithm == 0) { distributeSystemTasks(); }
    
-    
+    if (elevatorAlgorithm == 1) { regularAlgorithmDistributeSystemTasks(); }
     //updates time information for passengers riding the elevators (time information for passengers waiting for elevator is updated 
     //inside the building function, taking use of iteration work that has already been done to decrease overhead
     updateStatisticsFrames();
@@ -250,9 +252,21 @@ void draw() {
     
   }
   
+  
+  writeElevatorsQueueSize();
+  
 
 }
 
+void writeElevatorsQueueSize() {
+  for(int i = 0; i < elevators.size(); i++) {
+    
+    System.out.println("Elevator " + i + " has queue size " + elevators.get(i).getServiceQueue().size() + " and " + elevators.get(i).getDestination() + " as a destination"); 
+    
+  }
+  
+  
+}
 
 void checkElevatorStopped() {
   for(int i = 0; i < elevators.size(); i++) {
@@ -332,6 +346,13 @@ void regularAlgorithmDistributeSystemTasks() {
    // Job removedJob = elevators.get(indexOfTooBusyElevator).serviceQueue.remove(1);
     //elevators.get(indexOfFreeElevator).serviceQueue.add(removedJob);
    // System.out.println("Distributed a task -------------------------------------------------------------"); 
+   
+   //if we are in this loop then we can guarantee: there is at least one elevator not doing any task
+   //and there is also one elevator with some extra tasks
+   
+   Job removedJob = elevators.get(indexOfTooBusyElevator).serviceQueue.remove(1); 
+   elevators.get(indexOfFreeElevator).serviceQueue.add(removedJob); 
+   System.out.println("Distributed a task --------------------------------------------------------"); 
    
     
   }
@@ -636,6 +657,9 @@ void checkElevators() {
                     elevators.get(i).addPassenger(highRise.getFloors().get(elevatorFloor).getRoomsList().get(room).getWhoIsHome().get(population)); 
                     highRise.getFloors().get(elevatorFloor).getRoomsList().get(room).getWhoIsHome().get(population).flipRidingElevator(); 
                     
+                    Job jobIDToRemove = highRise.getFloors().get(elevatorFloor).getRoomsList().get(room).getWhoIsHome().get(population).getJob(); //the job of the persons job that is being added to the elevator cab
+                    int safeElevator = i;  //the elevator that should have this job in its queue
+                    
                     highRise.leaveRoom(highRise.getFloors().get(elevatorFloor).getRoomsList().get(room).getWhoIsHome().get(population)); 
                     
                     //need to check whether or not this elevator already had this persons job in in its service queue
@@ -654,6 +678,30 @@ void checkElevators() {
                           elevators.get(i).getServiceQueue().get(service).setPickedUp(true); 
                         } else {
                           System.out.println("This person was not intended for this elevator"); 
+                          
+                          //need to remove the job from the elevator that we are stealing this person from 
+                          
+                          //for each other elevator
+                          for(int y = 0; y < elevators.size(); y++) {
+                            
+                            for(int s = 0; s < elevators.get(y).getServiceQueue().size(); s++) {
+                              
+                              if(y == safeElevator) { 
+                                continue; 
+                              } else {
+                                if (jobIDToRemove.getID() == elevators.get(y).getServiceQueue().get(s).getID()) {
+                                  System.out.println("removing a job from elevator : " + y); 
+                                  
+                                  elevators.get(y).getServiceQueue().remove(jobIDToRemove); 
+                                }
+                                
+                                
+                              }
+                              
+                              
+                            }
+                            
+                          }
                           
                         }
                         

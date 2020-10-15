@@ -581,7 +581,8 @@ class Elevator {
           if(closingAnimationDone) {
             
             if(serviceQueue.size() == 0) {
-              currentDestination = -1; 
+              //currentDestination = -1; 
+              currentDestination = 0; 
             }
             
             direction = Direction.STATIONARY;

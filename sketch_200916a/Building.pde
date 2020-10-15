@@ -420,6 +420,43 @@ class Building {
       }
       
       
+      //this loop will now check for extra passengers that may be stuck in the elevator
+      for(int i = 0; i < elevators.size(); i++) {
+        
+        for(int c = 0; c < elevators.get(i).getCabPassengers().size(); c++) {
+          
+          //there is a pesky passenger stuck
+          if(elevators.get(i).getCabPassengers().get(c).getJob().getDestination() == elevators.get(i).getFloor()) {
+            
+            System.out.println("Expelling a PESKY passenger --------"); 
+            
+            System.out.println("Person leaving waited: " + elevators.get(i).getCabPassengers().get(c).getFramesWaitedForElevator() + " frames for an elevator to pick them up"); 
+            System.out.println("Person leaving spent: " + elevators.get(i).getCabPassengers().get(c).getFramesWaitedForElevator() + " frames on the elevator ride"); 
+            
+            peopleStatistics.add(new PeopleStat(elevators.get(i).getCabPassengers().get(c).getFramesWaitedForElevator(),elevators.get(i).getCabPassengers().get(c).getFramesSpendOnElevator())); 
+            
+            
+            elevators.get(i).getCabPassengers().get(c).flipRidingElevator();
+            
+            masterJobs.remove(elevators.get(i).getCabPassengers().get(c).getJob()); 
+            
+            elevators.get(i).getServiceQueue().remove(elevators.get(i).getCabPassengers().get(c).getJob()); 
+            elevators.get(i).getCabPassengers().remove(c); 
+            
+            elevators.get(i).setNeedInstruction(true); 
+            elevators.get(i).setJustDropped(true); 
+            
+            
+            
+          }
+          
+          
+        }
+        
+        
+      }
+      
+      
       
       
       

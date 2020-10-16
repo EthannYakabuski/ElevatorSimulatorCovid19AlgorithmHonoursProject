@@ -162,6 +162,9 @@ class Elevator {
   void setExtraPassengerStop(boolean e) {
     extraPassengersStop = e; 
   }
+  void setDirection(Direction d) {
+    direction = d; 
+  }
   //getters and setters end
   
   

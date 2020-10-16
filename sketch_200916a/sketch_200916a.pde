@@ -259,9 +259,37 @@ void draw() {
 }
 
 void writeElevatorsQueueSize() {
+  
+  
   for(int i = 0; i < elevators.size(); i++) {
     
-    System.out.println("Elevator " + i + " has queue size " + elevators.get(i).getServiceQueue().size() + " and " + elevators.get(i).getDestination() + " as a destination"); 
+    //System.out.println("Elevator " + i + " has queue size " + elevators.get(i).getServiceQueue().size() + " and " + elevators.get(i).getDestination() + " as a destination"); 
+    
+    
+    //if the elevators current floor is 0, the destination is 0, the service queue size is bigger than 0, and the first job in the service queue has not been picked up yet -> there is a problem
+    //this is the "PESKY elevator" problem
+    if(elevators.get(i).getFloor() == 1) {
+      
+      System.out.println("floor check"); 
+      if(elevators.get(i).getDestination() == 0) {
+        
+        System.out.println("destination check"); 
+        if(elevators.get(i).getServiceQueue().size() > 0) {
+          
+          
+          System.out.println("service queue check"); 
+          
+          if (elevators.get(i).getServiceQueue().get(0).getPickedUp() == false) {
+            
+            System.out.println("Setting true destination -------------------------------------------------------------------------------------------------------------------------------"); 
+            System.out.println("True destination is: " + elevators.get(i).getServiceQueue().get(0).getPickup());
+            elevators.get(i).setDestination(elevators.get(i).getServiceQueue().get(0).getPickup()); 
+            
+          }
+        }
+      }
+    }
+    
     
   }
   

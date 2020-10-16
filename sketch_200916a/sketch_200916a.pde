@@ -279,12 +279,17 @@ void writeElevatorsQueueSize() {
           
           System.out.println("service queue check"); 
           
-          if (elevators.get(i).getServiceQueue().get(0).getPickedUp() == false) {
+          if (elevators.get(i).getServiceQueue().get(0).getPickedUp() == false || elevators.get(i).getFloor() == 1) {
             
             System.out.println("Setting true destination -----------------PESKY------------------------------PESKY--------------------------------------------------------------------------------"); 
             System.out.println("True destination is: " + elevators.get(i).getServiceQueue().get(0).getPickup());
             elevators.get(i).setDestination(elevators.get(i).getServiceQueue().get(0).getPickup()); 
             
+            
+            if(elevators.get(i).getFloor() == 1) {
+              elevators.get(i).getServiceQueue().clear(); 
+              
+            }
             
             
           }

@@ -36,7 +36,9 @@ class EventScheduler {
     waiting = w; 
   }
   
-  
+  ArrayList<Job> getSimulationEvents() {
+    return simulationEvents; 
+  }
   
   void addJob(Job j) {
     simulationEvents.add(j);

@@ -29,6 +29,10 @@ class Building {
     
   }
   
+  ArrayList<PeopleStat> getPeopleStats() {
+    return peopleStatistics; 
+  }
+  
   ArrayList<Floor> getFloors() {
     return floors; 
   }
@@ -181,9 +185,12 @@ class Building {
               //covid-19 algorithm only has one cab passenger at a time ---- update later when other algorithms are added
               System.out.println("Person leaving waited: " + elevators.get(i).getCabPassengers().get(0).getFramesWaitedForElevator() + " frames for an elevator to pick them up");
               System.out.println("Person leaving spent: " + elevators.get(i).getCabPassengers().get(0).getFramesSpendOnElevator() + " frames on the elevator ride");
-          
+              elevators.get(i).getElevatorStat().tickPassengerDrop();
+              
               //add this PeopleStat to the arraylist storing the PeopleStat's
               peopleStatistics.add(new PeopleStat(elevators.get(i).getCabPassengers().get(0).getFramesWaitedForElevator(),elevators.get(i).getCabPassengers().get(0).getFramesSpendOnElevator()));
+              
+              
           
           
               elevators.get(i).getCabPassengers().get(0).flipRidingElevator();
@@ -400,6 +407,8 @@ class Building {
               
               elevators.get(i).getCabPassengers().get(person).flipRidingElevator();
               
+              elevators.get(i).getElevatorStat().tickPassengerDrop();
+              
               masterJobs.remove(elevators.get(i).getCabPassengers().get(person).getJob()); 
               
               elevators.get(i).getServiceQueue().remove(elevators.get(i).getCabPassengers().get(person).getJob()); 
@@ -435,6 +444,7 @@ class Building {
             
             peopleStatistics.add(new PeopleStat(elevators.get(i).getCabPassengers().get(c).getFramesWaitedForElevator(),elevators.get(i).getCabPassengers().get(c).getFramesSpendOnElevator())); 
             
+            elevators.get(i).getElevatorStat().tickPassengerDrop();
             
             elevators.get(i).getCabPassengers().get(c).flipRidingElevator();
             
@@ -460,8 +470,106 @@ class Building {
       
       
       
-   
-    }  //elevator algorithm 1 done
+   //elevator algorithm 1 done
+    }  else if (elevatorAlgorithm == 2) {
+      
+      //for each job in the building, add it to the master list
+      for(int floor = 0; floor < numFloors; floor++) {
+       
+        for(int room = 0; room < roomsPerFloor; room++) {
+          
+          for(int population = 0; population < floors.get(floor).getRoomFromIndex(room).getSize(); population++) {
+            
+             if( !(floors.get(floor).getRoomFromIndex(room).getTenantsList().get(population).getJob().addedToList)) {
+               
+               //the job has not been added to the master list yet
+               //if the job is now the default job
+               if(!(floors.get(floor).getRoomFromIndex(room).getTenantsList().get(population).getJob().getID() == -1)) {
+                 System.out.println("Adding a job to the master list"); 
+                 floors.get(floor).getRoomFromIndex(room).getTenantsList().get(population).getJob().addedToList = true;
+                 masterJobs.add(floors.get(floor).getRoomFromIndex(room).getTenantsList().get(population).getJob());
+               }
+             }
+          } 
+        } 
+      }
+      
+      
+      
+      //for each job in the master job list, if it has not already been given, give it to a stationary elevator on floor 1. 
+      for(int s = 0; s < masterJobs.size(); s++) {
+        if(masterJobs.get(s).given) {
+          //job has already been given
+        } else {
+          //try to find a stationary elevator on floor 1 to give this task to
+          boolean elevatorFound = false; 
+          for(int x = 0; x < elevators.size(); x++) {
+            if((elevators.get(x).getDirection() == Direction.STATIONARY) & (elevators.get(x).getFloor() == 1)) {
+              
+              elevators.get(x).getServiceQueue().add(masterJobs.get(s)); 
+              masterJobs.get(s).given = true; 
+              elevators.get(x).direction = Direction.UP; 
+              break; 
+              
+            }
+            
+            
+          }
+        }
+        
+        
+      }
+      
+      
+      
+      //these loops will handle expelling the passenger from the cab
+      //these loops will handle the elevators that are done a job and now need to expel their passenger
+      for(int i = 0; i < elevators.size(); i++) {
+        
+        //if there is at least one job
+        if(elevators.get(i).getServiceQueue().size() >= 1) {
+          
+          
+          //for each person in the cab check if their jobs destination floor is equal to floor of the elevator
+          for(int person = 0; person < elevators.get(i).getCabPassengers().size(); person++) {
+            
+            if(elevators.get(i).getFloor() == elevators.get(i).getCabPassengers().get(person).getJob().getDestination()) {
+              
+              System.out.println("Expelling passenger -------"); 
+              
+              
+              System.out.println("Person leaving waited: " + elevators.get(i).getCabPassengers().get(person).getFramesWaitedForElevator() + " frames for an elevator to pick them up");
+              System.out.println("Person leaving spent: " + elevators.get(i).getCabPassengers().get(person).getFramesSpendOnElevator() + " frames on the elevator ride");
+          
+              peopleStatistics.add(new PeopleStat(elevators.get(i).getCabPassengers().get(person).getFramesWaitedForElevator(),elevators.get(i).getCabPassengers().get(person).getFramesSpendOnElevator()));
+              
+              elevators.get(i).getCabPassengers().get(person).flipRidingElevator();
+              
+              elevators.get(i).getElevatorStat().tickPassengerDrop();
+              
+              masterJobs.remove(elevators.get(i).getCabPassengers().get(person).getJob()); 
+              
+              elevators.get(i).getServiceQueue().remove(elevators.get(i).getCabPassengers().get(person).getJob()); 
+              elevators.get(i).getCabPassengers().remove(person);
+              
+              
+              
+              elevators.get(i).setNeedInstruction(true); 
+              elevators.get(i).setJustDropped(true);  
+              
+              elevators.get(i).direction = Direction.STATIONARY; 
+            }
+            
+            
+          }
+          
+        }
+        
+        
+      }
+      
+      
+    }
  
    } 
    

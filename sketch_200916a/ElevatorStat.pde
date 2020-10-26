@@ -21,4 +21,20 @@ class ElevatorStat {
   }
   
   
+  void tickPassengerDrop() {
+    passengersDroppedOff++; 
+  }
+  
+  void tickPassengerPick() {
+    passengersPickedUp++; 
+  }
+  
+  
+  String makeString() {
+    return timeOpenedDoors + ":" + timeClosedDoors + ":" + passengersDroppedOff + ":" + passengersPickedUp; 
+    
+    
+  }
+  
+  
 }

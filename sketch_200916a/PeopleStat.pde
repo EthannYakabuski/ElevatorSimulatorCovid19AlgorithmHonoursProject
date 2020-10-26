@@ -15,6 +15,18 @@ class PeopleStat {
   }
   
   
+  int onElevator() {
+    return framesWaitedOnElevator; 
+  }
+  
+  int forElevator() {
+    return framesWaitedForElevator; 
+  }
+  
+  
+  String makeString() {
+    return framesWaitedOnElevator + ":" + framesWaitedForElevator; 
+  }
   
   
 }

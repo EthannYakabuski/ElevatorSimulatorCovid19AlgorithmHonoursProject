@@ -208,6 +208,9 @@ void draw() {
     if (elevatorAlgorithm == 1) { regularAlgorithmDistributeSystemTasks(); }
     //updates time information for passengers riding the elevators (time information for passengers waiting for elevator is updated 
     //inside the building function, taking use of iteration work that has already been done to decrease overhead
+    
+    if (elevatorAlgorithm == 2) { checkSpecialPickups(); }
+    
     updateStatisticsFrames();
     
     //if the event scheduler is being used in this instance of simulation
@@ -261,6 +264,33 @@ void draw() {
   checkEndOfSimulation(); 
 
 }
+
+//only runs if elevator algorithm == 2, this will set the indicator flag on the appropriate elevator if it should stop and pickup (a) extra passenger(s)
+void checkSpecialPickups() {
+  
+  
+  //for each elevator, check the floor of the building if there is a job currently in the building and the elevators doors are not already opening or closing - set the indicator
+  for(int i = 0; i < elevators.size(); i++) {
+    
+    int floor = elevators.get(i).getFloor() -1; 
+    
+    
+    
+    boolean thereIsASpecialPickup = highRise.floorBusy(floor); 
+    
+    if(thereIsASpecialPickup & !elevators.get(i).doorClosing & !elevators.get(i).doorOpening) {
+      //elevators.get(i).specialDoorStop = true; 
+      
+    }
+    
+    
+    
+  }
+  
+  
+  
+  
+}  
 
 
 void outputAllStatistics() {
@@ -354,7 +384,7 @@ void writeElevatorsQueueSize() {
   
   for(int i = 0; i < elevators.size(); i++) {
     
-    ///System.out.println("Elevator " + i + " has queue size " + elevators.get(i).getServiceQueue().size() + " and " + elevators.get(i).getDestination() + " as a destination"); 
+    System.out.println("Elevator " + i + " has queue size " + elevators.get(i).getServiceQueue().size() + " and " + elevators.get(i).getDestination() + " as a destination and has " + elevators.get(i).getCabPassengers().size() + " passengers in the cab"); 
    
     //if the elevators current floor is 0, the destination is 0, the service queue size is bigger than 0, and the first job in the service queue has not been picked up yet -> there is a problem
     //this is the "PESKY elevator" problem
@@ -778,6 +808,9 @@ void checkElevators() {
                     
                     highRise.leaveRoom(highRise.getFloors().get(elevatorFloor).getRoomsList().get(room).getWhoIsHome().get(population)); 
                     
+                    
+                   
+                    
                     elevators.get(i).getElevatorStat().tickPassengerPick();
                     //need to check whether or not this elevator already had this persons job in in its service queue
                     
@@ -795,7 +828,37 @@ void checkElevators() {
                           elevators.get(i).getServiceQueue().get(service).setPickedUp(true); 
                           
                           
-                          elevators.get(i).direction = Direction.DOWN; 
+                          elevators.get(i).direction = Direction.STATIONARY; 
+                          //elevators.get(i).specialDoorStop = true; 
+                          
+                        } else {
+                          System.out.println("This person was not intended for this elevator"); 
+                          
+                          //need to remove the job from the elevator that we are stealing this person from 
+                          
+                          //for each other elevator
+                          for(int y = 0; y < elevators.size(); y++) {
+                            
+                            for(int s = 0; s < elevators.get(y).getServiceQueue().size(); s++) {
+                              
+                              if(y == safeElevator) { 
+                                continue; 
+                              } else {
+                                if (jobIDToRemove.getID() == elevators.get(y).getServiceQueue().get(s).getID()) {
+                                  System.out.println("removing a job from elevator : " + y); 
+                                  
+                                  elevators.get(y).getServiceQueue().remove(jobIDToRemove); 
+                                  elevators.get(y).waitingInPlace = true;
+                                }
+                                
+                                
+                              }
+                              
+                              
+                            }
+                            
+                          }
+                          
                         } 
                         
                         

@@ -70,6 +70,11 @@ class Elevator {
   boolean extraStop = false; 
   boolean multiDoorIssue = false; 
   
+  boolean justExpelled = false; 
+  boolean waitingInPlace = false; 
+  
+  boolean specialDoorStop = false;
+  
   
   boolean openedDoorFloor = false; 
   
@@ -320,7 +325,7 @@ class Elevator {
   
   //moves the cab based on its speed for one frame
   void moveUp() {
-    
+    waitingInPlace = false;
     direction = Direction.UP;
     
    // System.out.println(cabPosY);
@@ -338,7 +343,7 @@ class Elevator {
   
   //moves the cab based on its speed for one frame
   void moveDown() {
-    
+    waitingInPlace = false;
     direction = Direction.DOWN; 
     
     if(!(floor == 1) & (!bottomDoorOpen) & (!doorOpening) & (!doorClosing)) {
@@ -607,7 +612,54 @@ class Elevator {
       }
       
      
-    } else if (elevatorAlgorithm == 2) { 
+    } else if (elevatorAlgorithm == 2) {
+      
+      if (justExpelled) { direction = Direction.STATIONARY; }
+      if (serviceQueue.size() == 0) {
+         direction = Direction.STATIONARY;
+      }
+      
+      if((serviceQueue.size() >= 1) & (direction == Direction.STATIONARY) & (floor == 1)) {
+        currentDestination = serviceQueue.get(0).getPickup();
+        direction = Direction.UP; 
+      }
+      
+      if((serviceQueue.size() >= 1) & (direction == Direction.DOWN) & (floor == 1)) {
+        currentDestination = serviceQueue.get(0).getPickup();
+        direction = Direction.UP; 
+      }
+      
+      if((serviceQueue.size() >=1) & (direction == Direction.STATIONARY) & (floor > 1)) {
+        if(serviceQueue.get(0).pickedUp) {
+          direction = Direction.DOWN; 
+        } else {
+          
+        }
+      
+      }
+      
+     
+      
+      if(serviceQueue.size() == 0) {
+        
+        
+      }
+      
+      //if(currentDestination > floor) { direction = Direction.UP; }
+      
+      if ((direction == Direction.STATIONARY) & (!doorOpening) & (!doorClosing)) {
+        
+        if(serviceQueue.size() >= 1) {
+          
+          if(floor < currentDestination) {
+            direction = Direction.UP; 
+          } else if (floor > currentDestination){
+            direction = Direction.DOWN;
+          }
+          
+        }
+        
+      }
       
       if(serviceQueue.size() >= 1) {
         
@@ -617,42 +669,38 @@ class Elevator {
         }
       }
       
-      if (direction == Direction.DOWN) {
-        if(serviceQueue.size() >= 1) { currentDestination = serviceQueue.get(0).getDestination(); }
-        moveDown();
+      
+      //if(specialDoorStop) {
+       // direction = Direction.STATIONARY; 
+        //specialDoorStop = false;
+      //}
+      
+      System.out.println(direction + " " + serviceQueue.size() + " ");
+      
+      
+      if(direction == Direction.DOWN) {
         
-      } else if (direction == Direction.UP) {
-        if(serviceQueue.size() >= 1) { currentDestination = serviceQueue.get(0).getPickup(); }
-        moveUp(); 
-        
-      } else if (direction == Direction.STATIONARY) {
-        
-        
-        if(serviceQueue.size() >= 1) {
-          //if an elevator is stationary, it is 1. opening/closing its door, 2. sitting at floor 1 with no task, 3. NEEDS TO OPEN ITS DOORS -> to pick up a passenger or to let a passenger go
+        if(cabPassengers.size() >= 1) {
           
-          //if the elevator is performing a pickup
-          if(floor == serviceQueue.get(0).getPickup() & !doorOpening & !doorClosing) {
-            
-            System.out.println("need a pickup"); 
-            if(openedDoorFloor == false) {
-               System.out.println("calling open door to pick up a passenger"); 
-              openDoor(frameRate);
-            }
-            
-            
-          }
-          
-          
-            
-            
-          }
-          
-          
-          
+          currentDestination = serviceQueue.get(0).getDestination(); 
           
           
         }
+        
+        
+      }
+      
+      System.out.println("right before moving: " + direction + " " + specialDoorStop + " " + serviceQueue.size() + " " + currentDestination);
+      
+      if(specialDoorStop) {
+        
+        if(openedDoorFloor == false) {
+          System.out.println("calling open door from a special pickup"); 
+          openDoor(frameRate); 
+          
+          
+        }
+        
         
         if(doorClosing) {
           boolean closingAnimationDone = false; 
@@ -664,6 +712,7 @@ class Elevator {
             direction = Direction.DOWN;
             doorClosing = false; 
             doorOpening = false;
+            specialDoorStop = false;
           }
           
         }
@@ -686,6 +735,108 @@ class Elevator {
       
       
       
+      if (direction == Direction.DOWN & !specialDoorStop) {
+        if(serviceQueue.size() >= 1) { 
+          currentDestination = serviceQueue.get(0).getDestination(); 
+          
+          if(floor == currentDestination & serviceQueue.get(0).pickedUp) {
+            direction = Direction.STATIONARY; 
+            
+            //openDoor(frameRate); 
+          }
+      
+        //fixes elevators stuck at bottom
+         } else {
+           direction = Direction.STATIONARY; 
+         }
+        moveDown();
+        
+      } else if (direction == Direction.UP & !specialDoorStop) {
+        if(serviceQueue.size() >= 1) { 
+          currentDestination = serviceQueue.get(0).getPickup(); 
+          
+          if(floor == currentDestination & !serviceQueue.get(0).pickedUp) {
+            direction = Direction.STATIONARY; 
+            //openDoor(frameRate); 
+          }
+          
+        }
+        moveUp(); 
+        
+      } else if (( (direction == Direction.STATIONARY) || justExpelled) & !specialDoorStop) {
+        
+        
+        if(serviceQueue.size() >= 1) {
+          //if an elevator is stationary, it is 1. opening/closing its door, 2. sitting at floor 1 with no task, 3. NEEDS TO OPEN ITS DOORS -> to pick up a passenger or to let a passenger go
+          
+          //if the elevator is performing a pickup
+          if(floor == serviceQueue.get(0).getPickup() & !doorOpening & !doorClosing) {
+            
+            System.out.println("need a pickup"); 
+            if(openedDoorFloor == false) {
+               System.out.println("calling open door to pick up a passenger, because someone was just picked up"); 
+              openDoor(frameRate);
+            }
+            
+            
+          } else if (specialDoorStop) {
+            if(openedDoorFloor == false) {
+               System.out.println("calling open door to pick up a passenger, because someone was just picked up"); 
+              openDoor(frameRate);
+            }
+            
+          }
+          
+          
+            
+            
+          } else if (justExpelled) {
+            if(openedDoorFloor == false) {
+               System.out.println("calling open door to pick up a passenger because someone was just expelled"); 
+              openDoor(frameRate);
+            }
+            
+          }
+          
+          
+          
+          
+          
+        
+        
+        if(doorClosing) {
+          boolean closingAnimationDone = false; 
+          closingAnimationDone = doorClosingTimer.tickTime(); 
+          
+          if(closingAnimationDone) {
+            
+            needInstruction = true;
+            direction = Direction.DOWN;
+            doorClosing = false; 
+            doorOpening = false;
+            specialDoorStop = false;
+          }
+          
+        }
+        
+        if(doorOpening) {
+          
+          boolean openingAnimationDone = false; 
+          openingAnimationDone = doorOpeningTimer.tickTime(); 
+          
+          if(openingAnimationDone) {
+            closeDoor();
+          }
+          
+        }
+        
+        
+        
+      } 
+      
+      
+      
+      
       
       
       
@@ -702,6 +853,7 @@ class Elevator {
   
   //this will only be called once per opening of the door
   void openDoor(int frameRate) {
+    //specialDoorStop = false;
     elevatorStat.tickDoorOpen();
     
     System.out.println("Inside openDoor(int frameRate)");
@@ -720,7 +872,7 @@ class Elevator {
     doorOpeningTimer = new StopWatch(0,0,totalDoorTime,"doorOpening");
     
     //cabPosX = cabPosX - 7; 
-    
+    justExpelled = false;
     //cabPos2X = cabPos2X + 7;
     
   }
@@ -729,7 +881,7 @@ class Elevator {
   //this will only be called once per closing of the door
   void closeDoor() {
   //  System.out.println("Inside closeDoor()");
-  
+    
     elevatorStat.tickClosedDoor(); 
     
     doorOpening = false; 
@@ -739,6 +891,12 @@ class Elevator {
     doorClosingTimer = new StopWatch(0,0,doorAnimationTime,"doorClosing");
     
     //openedDoorFloor = false;
+    
+    justExpelled = false; 
+    
+    
+    
+    
     
   }
   

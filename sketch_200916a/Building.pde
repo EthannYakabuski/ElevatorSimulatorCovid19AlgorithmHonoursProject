@@ -68,6 +68,26 @@ class Building {
    
   }
   
+  boolean floorBusy(int floorNum) {
+    boolean thereIsWork = false; 
+    
+    for(int i = 0; i < numRooms; i++) {
+      
+      if(floors.get(floorNum).getRoomsList().get(i).determineStatus()) {
+        
+        thereIsWork = true; 
+        break;
+        
+      }
+      
+      
+    }
+    
+    
+    return thereIsWork; 
+    
+  }
+  
   void giveElevatorTasks(int elevatorAlgorithm) {
     
     if (elevatorAlgorithm == 0) {
@@ -496,20 +516,28 @@ class Building {
       
       
       
-      //for each job in the master job list, if it has not already been given, give it to a stationary elevator on floor 1. 
+      //for each job in the master job list, if it has not already been given, give it to a stationary elevator on floor 1 or an elevator that has had its job stolen from it. 
       for(int s = 0; s < masterJobs.size(); s++) {
         if(masterJobs.get(s).given) {
           //job has already been given
         } else {
-          //try to find a stationary elevator on floor 1 to give this task to
+          //try to find a stationary elevator on floor 1 to give this task to //and make sure that it is not opening its doors
           boolean elevatorFound = false; 
           for(int x = 0; x < elevators.size(); x++) {
-            if((elevators.get(x).getDirection() == Direction.STATIONARY) & (elevators.get(x).getFloor() == 1)) {
+            if(( (elevators.get(x).getDirection() == Direction.STATIONARY) & (elevators.get(x).getFloor() == 1) & (!elevators.get(x).doorOpening) & (!elevators.get(x).doorClosing)) || elevators.get(x).waitingInPlace) {
               
               elevators.get(x).getServiceQueue().add(masterJobs.get(s)); 
               masterJobs.get(s).given = true; 
-              elevators.get(x).direction = Direction.UP; 
-              break; 
+              
+              
+              if(elevators.get(x).getFloor() < masterJobs.get(s).getPickup()) {
+                elevators.get(x).direction = Direction.UP; 
+                break;
+              } else if (elevators.get(x).getFloor() > masterJobs.get(s).getPickup()) {
+                elevators.get(x).direction = Direction.DOWN; 
+                break; 
+              }
+
               
             }
             
@@ -558,6 +586,8 @@ class Building {
               elevators.get(i).setJustDropped(true);  
               
               elevators.get(i).direction = Direction.STATIONARY; 
+              elevators.get(i).justExpelled = true; 
+              //elevators.get(i).openDoor(frameRate); 
             }
             
             

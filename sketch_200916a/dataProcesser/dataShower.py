@@ -74,6 +74,16 @@ plt.show()
 
 
 #make the third histogram that shows overall average wait time
+for i in range(0, len(timesWaitedInSeconds)):
+    totalTimeSpentInSeconds.append(timesWaitedInSeconds[i] + timesOnElevatorInSeconds[i])
+    
 
+figure = plt.figure()
+ax1 = figure.add_subplot(211)
+ax1.set_ylabel("Frequency")
+ax1.set_xlabel("Total time of trip seconds")
+ax1.set_title("Total time spent on trip")
 
+plt.hist(totalTimeSpentInSeconds)
+plt.show()
 

@@ -1,3 +1,5 @@
+import java.util.Collection; 
+
 class Building {
  
   int numRooms; 
@@ -493,6 +495,10 @@ class Building {
    //elevator algorithm 1 done
     }  else if (elevatorAlgorithm == 2) {
       
+      
+      
+      
+      
       //for each job in the building, add it to the master list
       for(int floor = 0; floor < numFloors; floor++) {
        
@@ -513,6 +519,37 @@ class Building {
           } 
         } 
       }
+      
+      //make it so the job with the highest floor, is the job that is given to the free elevator
+      //eg : set the job with the highest floor pickup, to be the first job in the list
+      
+      /*
+      int largestPickupIndex = 0; 
+      int largestPickupSoFar = 0; 
+      Job tempJob = new Job(); 
+      for(int p = 0; p < masterJobs.size(); p++) {
+
+        
+        if(masterJobs.get(p).getPickup() > largestPickupSoFar) {
+         
+          largestPickupIndex = p; 
+          largestPickupSoFar = masterJobs.get(p).getPickup();
+          tempJob = masterJobs.get(p); 
+          
+        }
+        
+        //remove the largest job where you found it
+        masterJobs.remove(largestPickupIndex); 
+        //add the largest job to the start of the master list
+        masterJobs.add(tempJob); 
+       
+        
+        
+      }
+      */
+      
+      
+      
       
       
       

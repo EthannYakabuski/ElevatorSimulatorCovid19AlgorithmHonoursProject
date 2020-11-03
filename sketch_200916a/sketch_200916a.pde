@@ -3,7 +3,7 @@
 import controlP5.*;
 
 import java.util.Arrays;
-
+import java.util.Collection;
 
 int width= 1600; 
 int height = 950; 
@@ -208,11 +208,13 @@ void draw() {
     //updates time information for passengers riding the elevators (time information for passengers waiting for elevator is updated 
     //inside the building function, taking use of iteration work that has already been done to decrease overhead
     
+    if (elevatorAlgorithm == 2) { distributeStandardTasks(); }
+    
     if (elevatorAlgorithm == 2) { checkSpecialPickups(); }
     
     if (elevatorAlgorithm == 2) { checkElevator2ExtraPickups(); }
     
-   // if (elevatorAlgorithm == 2) { checkStuckElevators(); }
+  //  if (elevatorAlgorithm == 2) { checkStuckElevators(); }
     
     updateStatisticsFrames();
     
@@ -387,7 +389,8 @@ void writeElevatorsQueueSize() {
   
   for(int i = 0; i < elevators.size(); i++) {
     
-    System.out.println("Elevator " + i + " has queue size " + elevators.get(i).getServiceQueue().size() + " and " + elevators.get(i).getDestination() + " as a destination and has " + elevators.get(i).getCabPassengers().size() + " passengers in the cab"); 
+    //System.out.println("Elevator " + i + " has queue size " + elevators.get(i).getServiceQueue().size() + " and " + elevators.get(i).getDestination() + " as a destination and has " + elevators.get(i).getCabPassengers().size() + " passengers in the cab"); 
+   // System.out.println("Elevator " + i + " has specialDoorStop " + elevators.get(i).specialDoorStop + " and specialStopFloor: " + elevators.get(i).specialStopFloor + " and openedDoorFloor " + elevators.get(i).openedDoorFloor);
    
     //if the elevators current floor is 0, the destination is 0, the service queue size is bigger than 0, and the first job in the service queue has not been picked up yet -> there is a problem
     //this is the "PESKY elevator" problem
@@ -467,6 +470,58 @@ void updateStatisticsFrames() {
     
     
   }
+  
+  
+}
+
+void distributeStandardTasks() {
+  int indexOfTooBusyElevator = -1; 
+  int sizeOfTooBusyElevator = -1; 
+  int indexOfFreeElevator = -1; 
+  
+  boolean elevatorDoingNothing = false; 
+  boolean elevatorTooBusy = false; 
+ 
+  //for each elevator
+  for(int i = 0; i < elevators.size(); i++) {
+    
+    //trying to find an elevator that is not doing anything
+    if(elevators.get(i).serviceQueue.size() == 0) {
+      elevatorDoingNothing = true; 
+      indexOfFreeElevator = i; 
+    }
+    
+    //trying to find a busy elevator
+    if(elevators.get(i).serviceQueue.size() > 1) {
+      
+      if(sizeOfTooBusyElevator < elevators.get(i).serviceQueue.size()) {
+        indexOfTooBusyElevator = i; 
+        sizeOfTooBusyElevator = elevators.get(i).serviceQueue.size(); 
+        elevatorTooBusy = true; 
+        
+      }
+      
+      
+    }
+    
+  }
+  
+  if(elevatorDoingNothing & elevatorTooBusy) {
+    
+   // Job removedJob = elevators.get(indexOfTooBusyElevator).serviceQueue.remove(1);
+    //elevators.get(indexOfFreeElevator).serviceQueue.add(removedJob);
+   // System.out.println("Distributed a task -------------------------------------------------------------"); 
+   
+   //if we are in this loop then we can guarantee: there is at least one elevator not doing any task
+   //and there is also one elevator with some extra tasks
+   
+   Job removedJob = elevators.get(indexOfTooBusyElevator).serviceQueue.remove(1); 
+   elevators.get(indexOfFreeElevator).serviceQueue.add(removedJob); 
+   System.out.println("Distributed a task --------------------------------------------------------"); 
+   
+    
+  }
+  
   
   
 }

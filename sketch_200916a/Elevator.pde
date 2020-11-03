@@ -231,6 +231,7 @@ class Elevator {
        
        rect(cabPosX, cabPosY, cabWidth/2, cabHeight);
        rect(cabPos2X, cabPosY, cabWidth/2, cabHeight);
+       
       
     }  else if (doorClosing) {  //door is in the process of closing
        
@@ -641,6 +642,11 @@ class Elevator {
       
       }
       
+      if((serviceQueue.size() >=1) & (direction == Direction.UP) & (floor == 0)) {
+        currentDestination = serviceQueue.get(0).getPickup(); 
+        
+      }
+      
      
       
       if(serviceQueue.size() == 0) {
@@ -817,6 +823,7 @@ class Elevator {
             doorOpening = false;
             System.out.println("setting special door stop to false");
             specialDoorStop = false;
+            cabPosX = cabPosX + sidewaysDoorSpeed; 
           }
           
         }

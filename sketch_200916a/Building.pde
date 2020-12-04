@@ -101,18 +101,6 @@ class Building {
       int foundPopulation = -1;
       //System.out.println("Giving elevators tasks");
     
-      if(elevatorAlgorithm == 0) {
-        //System.out.println("Using covid-19 algorithm"); 
-      
-      } else if (elevatorAlgorithm == 1) {
-        //System.out.println("Using regular elevator algorithm");
-      
-      }
-    
-    
-    
-   
-    
         //these nested loops handle giving Jobs to elevators from people that are currently at home in their room
         for(int floor = 0; floor < numFloors; floor++) {
      
@@ -233,407 +221,11 @@ class Building {
       
     } else if (elevatorAlgorithm == 1) {
       
-     // System.out.println("Using regular elevator algorithm"); 
-     for(int b = 0; b < elevators.size(); b++) {
-       //System.out.println("service queue size of elevator " + b + " is : " + elevators.get(b).getServiceQueue().size()); 
-     }
-     
+      System.out.println(masterJobs.size());
+      
+      
     
-      
-      //these loops handle getting the jobs of the building and adding them to the master list
-      //a master list is more important in the regular elevator algordiithm scenario due to need 
-      //of updating elevators that another cab may be "stealing" a passenger from
-      
-      //for each job in the building, add it to the master list
-      for(int floor = 0; floor < numFloors; floor++) {
-       
-        for(int room = 0; room < roomsPerFloor; room++) {
-          
-          for(int population = 0; population < floors.get(floor).getRoomFromIndex(room).getSize(); population++) {
-            
-             if( !(floors.get(floor).getRoomFromIndex(room).getTenantsList().get(population).getJob().addedToList)) {
-               
-               //the job has not been added to the master list yet
-               //if the job is now the default job
-               if(!(floors.get(floor).getRoomFromIndex(room).getTenantsList().get(population).getJob().getID() == -1)) {
-                 System.out.println("Adding a job to the master list"); 
-                 floors.get(floor).getRoomFromIndex(room).getTenantsList().get(population).getJob().addedToList = true;
-                 masterJobs.add(floors.get(floor).getRoomFromIndex(room).getTenantsList().get(population).getJob());
-               }
-             }
-          } 
-        } 
-      }
-      
-      /*
-      
-      //these loops will handle giving tasks to elevators that are stationary. 
-      //for each job in the master list that doesn't currently have an elevator coming
-      for(int job = 0; job < masterJobs.size(); job++) {
-        
-        if(!(masterJobs.get(job).elevatorComing)) {
-          // for each elevator
-          for(int elevator = 0; elevator < elevators.size(); elevator++) {
-          
-          
-            if(elevators.get(elevator).getDirection() == Direction.STATIONARY) {
-              System.out.println("Giving elevator " + elevator + " a task");
-              
-              if(masterJobs.get(job).elevatorComing == false) {
-              
-                masterJobs.get(job).elevatorComing = true; 
-                elevators.get(elevator).acceptRequest(masterJobs.get(job),elevator);
-                
-                
-              }
-            
-            }
-          
-          }
-          
-        }
-        
-        
-      }
-      */
-      
-      
-      //these loops will handle giving tasks to elevators that are stationary
-      //for each elevator,
-      
-      //accept the first unaccepted job 
-      
-         //then -> accept all jobs on the path of that job
-         
-         for(int elevator = 0; elevator < elevators.size(); elevator++) {
-           
-           boolean acceptedOne = false;
-           //for each job in the master job
-           for(int job = 0; job < masterJobs.size(); job++) {
-             
-             if(acceptedOne == false) {
-             //if this job has not already been accepted
-             if(masterJobs.get(job).elevatorComing == false) {
-               
-               if(alreadyAccepted(elevator, masterJobs.get(job).getID())) {
-                 System.out.println("This job has already been accepted"); 
-                 
-               } else {
-                 
-                 masterJobs.get(job).elevatorComing = true; 
-                 elevators.get(elevator).acceptRequest(masterJobs.get(job),elevator); 
-                 
-                 acceptedOne = true; 
-                 System.out.println("---------------------------------------------------------------- added a job"); 
-                 acceptAllOnPath(elevator,masterJobs.get(job)); 
-               }
-          
-             }
-       
-           }
-           }
-           
-         }
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      //these loops will handle giving tasks to elevators that are currently moving down
-      //for each job in the master list
-      for(int job = 0; job < masterJobs.size(); job++) {
-        
-        //for each elevator
-        for(int elevator = 0; elevator < elevators.size(); elevator++) {
-          
-          //if the elevator is currently moving down
-          if(elevators.get(elevator).getDirection() == Direction.DOWN) {
-             
-            //if the person associated with the job has not been picked up yet
-            if(masterJobs.get(job).getPickedUp() == false) {
-              
-              //if the master jobs pickup location is the same as the elevator
-              if(masterJobs.get(job).getPickup() == elevators.get(elevator).getFloor()) {
-                
-                //if(elevators.get(elevator).extraStop == false) {
-                  //System.out.println("Giving elevator " + elevator + " a task - this is an EXTRA task"); 
-                  //make sure that this job id does not already exist in the service queue
-                  
-                  //for each job in the service queue
-                  for(int accepted = 0; accepted < elevators.get(elevator).getServiceQueue().size(); accepted++) {
-                    
-                    System.out.println("Service queue size: " + elevators.get(elevator).getServiceQueue().size()); 
-                    
-                    //if the elevator already has this job in its service queue, you don't want to create duplicate jobs
-                    if(elevators.get(elevator).getServiceQueue().get(accepted).getID() == masterJobs.get(job).getID()) {
-                      System.out.println("Matching job not adding"); 
-                      
-                    } else {
-                      System.out.println("EXTRA task added"); 
-                      masterJobs.get(job).elevatorComing = true; 
-                      //elevators.get(elevator).acceptRequest(masterJobs.get(job),elevator); 
-                      //elevators.get(elevator).getServiceQueue().add(masterJobs.get(job));
-                      elevators.get(elevator).setDestination(masterJobs.get(job).getPickup()); 
-                      elevators.get(elevator).extraStop = true; 
-                      
-                    }
-                    
-                    
-                  }
-                  
-                
-                //}
-                 
-              }
-              
-              
-            }
-            
-            
-          }
-          
-          
-          
-        }
-        
-        
-      }
-      
-      
-      
-      
-      //these loops will handle the elevators that are done a job and now need to expel their passenger
-      for(int i = 0; i < elevators.size(); i++) {
-        
-        //if there is at least one job
-        if(elevators.get(i).getServiceQueue().size() >= 1) {
-          
-          
-          //for each person in the cab check if their jobs destination floor is equal to floor of the elevator
-          for(int person = 0; person < elevators.get(i).getCabPassengers().size(); person++) {
-            
-            if(elevators.get(i).getFloor() == elevators.get(i).getCabPassengers().get(person).getJob().getDestination()) {
-              
-              System.out.println("Expelling passenger -------"); 
-              
-              
-              System.out.println("Person leaving waited: " + elevators.get(i).getCabPassengers().get(person).getFramesWaitedForElevator() + " frames for an elevator to pick them up");
-              System.out.println("Person leaving spent: " + elevators.get(i).getCabPassengers().get(person).getFramesSpendOnElevator() + " frames on the elevator ride");
-          
-              peopleStatistics.add(new PeopleStat(elevators.get(i).getCabPassengers().get(person).getFramesWaitedForElevator(),elevators.get(i).getCabPassengers().get(person).getFramesSpendOnElevator()));
-              
-              elevators.get(i).getCabPassengers().get(person).flipRidingElevator();
-              
-              elevators.get(i).getElevatorStat().tickPassengerDrop();
-              
-              masterJobs.remove(elevators.get(i).getCabPassengers().get(person).getJob()); 
-              
-              elevators.get(i).getServiceQueue().remove(elevators.get(i).getCabPassengers().get(person).getJob()); 
-              elevators.get(i).getCabPassengers().remove(person);
-              
-              
-              
-              elevators.get(i).setNeedInstruction(true); 
-              elevators.get(i).setJustDropped(true);  
-            }
-            
-            
-          }
-          
-        }
-        
-        
-      }
-      
-      
-      //this loop will now check for extra passengers that may be stuck in the elevator
-      for(int i = 0; i < elevators.size(); i++) {
-        
-        for(int c = 0; c < elevators.get(i).getCabPassengers().size(); c++) {
-          
-          //there is a pesky passenger stuck
-          if(elevators.get(i).getCabPassengers().get(c).getJob().getDestination() == elevators.get(i).getFloor()) {
-            
-            System.out.println("Expelling a PESKY passenger --------"); 
-            
-            System.out.println("Person leaving waited: " + elevators.get(i).getCabPassengers().get(c).getFramesWaitedForElevator() + " frames for an elevator to pick them up"); 
-            System.out.println("Person leaving spent: " + elevators.get(i).getCabPassengers().get(c).getFramesWaitedForElevator() + " frames on the elevator ride"); 
-            
-            peopleStatistics.add(new PeopleStat(elevators.get(i).getCabPassengers().get(c).getFramesWaitedForElevator(),elevators.get(i).getCabPassengers().get(c).getFramesSpendOnElevator())); 
-            
-            elevators.get(i).getElevatorStat().tickPassengerDrop();
-            
-            elevators.get(i).getCabPassengers().get(c).flipRidingElevator();
-            
-            masterJobs.remove(elevators.get(i).getCabPassengers().get(c).getJob()); 
-            
-            elevators.get(i).getServiceQueue().remove(elevators.get(i).getCabPassengers().get(c).getJob()); 
-            elevators.get(i).getCabPassengers().remove(c); 
-            
-            elevators.get(i).setNeedInstruction(true); 
-            elevators.get(i).setJustDropped(true); 
-            
-            
-            
-          }
-          
-          
-        }
-        
-        
-      }
-      
-      
-      
-      
-      
-   //elevator algorithm 1 done
     }  else if (elevatorAlgorithm == 2) {
-      
-      
-      
-      
-      
-      //for each job in the building, add it to the master list
-      for(int floor = 0; floor < numFloors; floor++) {
-       
-        for(int room = 0; room < roomsPerFloor; room++) {
-          
-          for(int population = 0; population < floors.get(floor).getRoomFromIndex(room).getSize(); population++) {
-            
-             if( !(floors.get(floor).getRoomFromIndex(room).getTenantsList().get(population).getJob().addedToList)) {
-               
-               //the job has not been added to the master list yet
-               //if the job is now the default job
-               if(!(floors.get(floor).getRoomFromIndex(room).getTenantsList().get(population).getJob().getID() == -1)) {
-                 System.out.println("Adding a job to the master list"); 
-                 floors.get(floor).getRoomFromIndex(room).getTenantsList().get(population).getJob().addedToList = true;
-                 masterJobs.add(floors.get(floor).getRoomFromIndex(room).getTenantsList().get(population).getJob());
-               }
-             }
-          } 
-        } 
-      }
-      
-      //make it so the job with the highest floor, is the job that is given to the free elevator
-      //eg : set the job with the highest floor pickup, to be the first job in the list
-      
-      /*
-      int largestPickupIndex = 0; 
-      int largestPickupSoFar = 0; 
-      Job tempJob = new Job(); 
-      for(int p = 0; p < masterJobs.size(); p++) {
-
-        
-        if(masterJobs.get(p).getPickup() > largestPickupSoFar) {
-         
-          largestPickupIndex = p; 
-          largestPickupSoFar = masterJobs.get(p).getPickup();
-          tempJob = masterJobs.get(p); 
-          
-        }
-        
-        //remove the largest job where you found it
-        masterJobs.remove(largestPickupIndex); 
-        //add the largest job to the start of the master list
-        masterJobs.add(tempJob); 
-       
-        
-        
-      }
-      */
-      
-      
-      
-      
-      
-      
-      //for each job in the master job list, if it has not already been given, give it to a stationary elevator on floor 1 or an elevator that has had its job stolen from it. 
-      for(int s = 0; s < masterJobs.size(); s++) {
-        if(masterJobs.get(s).given) {
-          //job has already been given
-        } else {
-          //try to find a stationary elevator on floor 1 to give this task to //and make sure that it is not opening its doors
-          boolean elevatorFound = false; 
-          for(int x = 0; x < elevators.size(); x++) {
-            if(( (elevators.get(x).getDirection() == Direction.STATIONARY) & (elevators.get(x).getFloor() == 1) & (!elevators.get(x).doorOpening) & (!elevators.get(x).doorClosing)) || elevators.get(x).waitingInPlace) {
-              
-              elevators.get(x).getServiceQueue().add(masterJobs.get(s)); 
-              masterJobs.get(s).given = true; 
-              
-              
-              if(elevators.get(x).getFloor() < masterJobs.get(s).getPickup()) {
-                elevators.get(x).direction = Direction.UP; 
-                break;
-              } else if (elevators.get(x).getFloor() > masterJobs.get(s).getPickup()) {
-                elevators.get(x).direction = Direction.DOWN; 
-                break; 
-              }
-
-              
-            }
-            
-            
-          }
-        }
-        
-        
-      }
-      
-      
-      
-      //these loops will handle expelling the passenger from the cab
-      //these loops will handle the elevators that are done a job and now need to expel their passenger
-      for(int i = 0; i < elevators.size(); i++) {
-        
-        //if there is at least one job
-        if(elevators.get(i).getServiceQueue().size() >= 1) {
-          
-          
-          //for each person in the cab check if their jobs destination floor is equal to floor of the elevator
-          for(int person = 0; person < elevators.get(i).getCabPassengers().size(); person++) {
-            
-            if(elevators.get(i).getFloor() == elevators.get(i).getCabPassengers().get(person).getJob().getDestination()) {
-              
-              System.out.println("Expelling passenger -------"); 
-              
-              
-              System.out.println("Person leaving waited: " + elevators.get(i).getCabPassengers().get(person).getFramesWaitedForElevator() + " frames for an elevator to pick them up");
-              System.out.println("Person leaving spent: " + elevators.get(i).getCabPassengers().get(person).getFramesSpendOnElevator() + " frames on the elevator ride");
-          
-              peopleStatistics.add(new PeopleStat(elevators.get(i).getCabPassengers().get(person).getFramesWaitedForElevator(),elevators.get(i).getCabPassengers().get(person).getFramesSpendOnElevator()));
-              
-              elevators.get(i).getCabPassengers().get(person).flipRidingElevator();
-              
-              elevators.get(i).getElevatorStat().tickPassengerDrop();
-              
-              masterJobs.remove(elevators.get(i).getCabPassengers().get(person).getJob()); 
-              
-              elevators.get(i).getServiceQueue().remove(elevators.get(i).getCabPassengers().get(person).getJob()); 
-              elevators.get(i).getCabPassengers().remove(person);
-              
-              
-              
-              elevators.get(i).setNeedInstruction(true); 
-              elevators.get(i).setJustDropped(true);  
-              
-              elevators.get(i).direction = Direction.STATIONARY; 
-              elevators.get(i).justExpelled = true; 
-              //elevators.get(i).openDoor(frameRate); 
-            }
-            
-            
-          }
-          
-        }
-        
-        
-      }
       
       
     }
@@ -941,7 +533,28 @@ Person popPerson(int fl) {
 }
     
     
+ArrayList<Person> returnWaitingList(int floor) {
+  ArrayList<Person> tempList = new ArrayList<Person>(); 
+  
+  ArrayList<Room> rooms = floors.get(floor).getRoomsList(); 
+  
+  for(int r = 0; r < rooms.size(); r++) {
     
+    for(int p = 0; p < rooms.get(r).getWhoIsHome().size(); p++) {
+      
+      //if the id of the persons job has been set (not default -1)
+      if (rooms.get(r).getWhoIsHome().get(p).getJob().getID() > 0) {
+        tempList.add(rooms.get(r).getWhoIsHome().get(p)); 
+        
+      }
+      
+    }
+    
+    
+  }
+  
+  return tempList;  
+}
     
     
     

@@ -105,6 +105,8 @@ int currentFrame = 0;
 ArrayList<Elevator> elevators = new ArrayList<Elevator>();
 
 
+ArrayList<Job> masterJobs = new ArrayList<Job>();
+
 //if the building has been specified yet, activates "live" building mode, where you can see real time adjustments of
 boolean buildingSpecified = false;
 
@@ -118,6 +120,8 @@ boolean simulationStarted = false;
 boolean tested = false;
 
 boolean outputStats = false; 
+
+boolean pandemicStatus = false;
 
 //inidication of if the room panel has been used yet
 boolean roomPanel = false;
@@ -157,7 +161,9 @@ void draw() {
   drawElevatorInformationPanel();
   drawHighRiseInformationPanel();
   
-  
+  if(elevatorAlgorithm == 1) { 
+      pandemicStatus = true; 
+    }
   
   recalculateSimulationFrames();
   
@@ -185,9 +191,13 @@ void draw() {
     checkSimulationTime();
     
     
-    highRise.giveElevatorTasks(elevatorAlgorithm);
+    if(elevatorAlgorithm == 0) { highRise.giveElevatorTasks(elevatorAlgorithm); }
   
     //System.out.println("frame");
+   
+    if(elevatorAlgorithm == 1) { distributeRegularTasks(); }
+    
+    if(elevatorAlgorithm == 2) { distributeStandardTasks(); }
    
     //drawElevators();
     moveElevators();
@@ -196,7 +206,7 @@ void draw() {
     checkElevators();
     
     //checkElevatorStop(); 
-   
+    checkSpecialPickups();
     
     //
     checkElevatorExpulsion();
@@ -204,17 +214,9 @@ void draw() {
     //this function checks whether or not there is a free elevator and another elevator has a queue size larger than 1, it will distribute the second job to the free elevator
     if (elevatorAlgorithm == 0) { distributeSystemTasks(); }
    
-    if (elevatorAlgorithm == 1) { regularAlgorithmDistributeSystemTasks(); }
+    //if (elevatorAlgorithm == 1) { regularAlgorithmDistributeSystemTasks(); }
     //updates time information for passengers riding the elevators (time information for passengers waiting for elevator is updated 
-    //inside the building function, taking use of iteration work that has already been done to decrease overhead
-    
-    if (elevatorAlgorithm == 2) { distributeStandardTasks(); }
-    
-    if (elevatorAlgorithm == 2) { checkSpecialPickups(); }
-    
-    if (elevatorAlgorithm == 2) { checkElevator2ExtraPickups(); }
-    
-  //  if (elevatorAlgorithm == 2) { checkStuckElevators(); }
+    //inside the building function, taking use of iteration work that has already been done to decrease overhea
     
     updateStatisticsFrames();
     
@@ -227,6 +229,7 @@ void draw() {
         
         Job jobToAdd = eventScheduler.getTopTask();
         
+        masterJobs.add(jobToAdd); 
         
         highRise.addJobFromPID(jobToAdd,jobToAdd.getPassengerID()); 
         
@@ -260,6 +263,17 @@ void draw() {
     
     //if(buildingObjectsCreated) { testQueue(); }
     
+    /*
+    if(!simulationStarted) {
+      
+      if(highRise.peopleStatistics.size() > 2) {
+        
+        outputAllStatistics();
+        
+      }
+    }
+    */
+    
   }
   
   
@@ -270,31 +284,65 @@ void draw() {
 
 }
 
-//only runs if elevator algorithm == 2, this will set the indicator flag on the appropriate elevator if it should stop and pickup (a) extra passenger(s)
+
 void checkSpecialPickups() {
   
   
-  //for each elevator, check the floor of the building if there is a job currently in the building and the elevators doors are not already opening or closing - set the indicator
-  for(int i = 0; i < elevators.size(); i++) {
-    
-    int floor = elevators.get(i).getFloor() -1; 
+  if(elevatorAlgorithm == 1) {
     
     
+    for(int i = 0; i < elevators.size(); i++) {
+      
+      boolean floorIsBusy = false; 
+      
+      int eleFloor = elevators.get(i).getFloor(); 
+      
+      
+      floorIsBusy = highRise.getFloors().get(eleFloor).getFloorStatus();
+      
+      
+      //if the floor that the elevator is passing by is busy
+      if(floorIsBusy & elevators.get(i).direction == Direction.DOWN & !elevators.get(i).checkedForExtraStop & !elevators.get(i).openedDoorFloor) {
+        //if the elevator hasnt already attempted to open its door this floor
+        
+        elevators.get(i).specialStopFloor = true; 
+        elevators.get(i).checkedForExtraStop = true;
+        
+      }
+      
+      
+      
+      
+    }
+   
+  } else if (elevatorAlgorithm == 2) {
     
-    boolean thereIsASpecialPickup = highRise.floorBusy(floor); 
-    
-    if(thereIsASpecialPickup & !elevators.get(i).doorClosing & !elevators.get(i).doorOpening) {
-      //elevators.get(i).specialDoorStop = true; 
+    for(int i = 0; i < elevators.size(); i++) {
+      
+      boolean floorIsBusy = false; 
+      
+      int eleFloor = elevators.get(i).getFloor(); 
+      
+      
+      floorIsBusy = highRise.getFloors().get(eleFloor).getFloorStatus();
+      
+      
+      //if the floor that the elevator is passing by is busy
+      if(floorIsBusy & elevators.get(i).direction == Direction.DOWN & !elevators.get(i).checkedForExtraStop & !elevators.get(i).openedDoorFloor) {
+        //if the elevator hasnt already attempted to open its door this floor
+        
+        elevators.get(i).specialStopFloor = true; 
+        elevators.get(i).checkedForExtraStop = true;
+        
+      }
+      
+      
+      
       
     }
     
-    
-    
   }
-  
-  
-  
-  
+
 }  
 
 
@@ -376,6 +424,8 @@ void checkEndOfSimulation() {
     
     
     
+    
+    
   }
   
   
@@ -389,50 +439,10 @@ void writeElevatorsQueueSize() {
   
   for(int i = 0; i < elevators.size(); i++) {
     
-    //System.out.println("Elevator " + i + " has queue size " + elevators.get(i).getServiceQueue().size() + " and " + elevators.get(i).getDestination() + " as a destination and has " + elevators.get(i).getCabPassengers().size() + " passengers in the cab"); 
-   // System.out.println("Elevator " + i + " has specialDoorStop " + elevators.get(i).specialDoorStop + " and specialStopFloor: " + elevators.get(i).specialStopFloor + " and openedDoorFloor " + elevators.get(i).openedDoorFloor);
-   
-    //if the elevators current floor is 0, the destination is 0, the service queue size is bigger than 0, and the first job in the service queue has not been picked up yet -> there is a problem
-    //this is the "PESKY elevator" problem
-    if(elevators.get(i).getFloor() == 1 & elevatorAlgorithm != 2) {
-      
-      //System.out.println("floor check"); 
-      if(elevators.get(i).getDestination() == 0) {
-        
-        //System.out.println("destination check"); 
-        if(elevators.get(i).getServiceQueue().size() > 0) {
-          
-          
-          //System.out.println("service queue check"); 
-          
-          if (elevators.get(i).getServiceQueue().get(0).getPickedUp() == false || elevators.get(i).getFloor() == 1) {
-            
-            System.out.println("Setting true destination -----------------PESKY------------------------------PESKY--------------------------------------------------------------------------------"); 
-            System.out.println("True destination is: " + elevators.get(i).getServiceQueue().get(0).getPickup());
-            elevators.get(i).setDestination(elevators.get(i).getServiceQueue().get(0).getPickup()); 
-            
-            
-            if(elevators.get(i).getFloor() == 1) {
-              elevators.get(i).getServiceQueue().clear(); 
-              
-            }
-            
-            
-          }
-        }
-      }
-    }
+    System.out.println("Elevator " + i + " has queue size " + elevators.get(i).getServiceQueue().size() + " and " + elevators.get(i).getDestination() + " as a destination and has " + elevators.get(i).getCabPassengers().size() + " passengers in the cab"); 
+    System.out.println("Elevator " + i + " has waitingInPlace " + elevators.get(i).waitingInPlace + " has needInstruction " + elevators.get(i).needInstruction + " has specialDoorStop " + elevators.get(i).specialDoorStop + " and specialStopFloor: " + elevators.get(i).specialStopFloor + " and openedDoorFloor " + elevators.get(i).openedDoorFloor);
   }
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
+
 }
 
 void checkElevatorStopped() {
@@ -475,108 +485,42 @@ void updateStatisticsFrames() {
 }
 
 void distributeStandardTasks() {
-  int indexOfTooBusyElevator = -1; 
-  int sizeOfTooBusyElevator = -1; 
-  int indexOfFreeElevator = -1; 
-  
-  boolean elevatorDoingNothing = false; 
-  boolean elevatorTooBusy = false; 
- 
-  //for each elevator
-  for(int i = 0; i < elevators.size(); i++) {
-    
-    //trying to find an elevator that is not doing anything
-    if(elevators.get(i).serviceQueue.size() == 0) {
-      elevatorDoingNothing = true; 
-      indexOfFreeElevator = i; 
-    }
-    
-    //trying to find a busy elevator
-    if(elevators.get(i).serviceQueue.size() > 1) {
+  //this will add one job to one elevator
+  //if it doesnt have a job
+  if(masterJobs.size() >= 1) {
+    for(int i = 0; i < elevators.size(); i++) {
+   
+      if(elevators.get(i).serviceQueue.size() == 0) {
+        elevators.get(i).serviceQueue.add(masterJobs.get(0)); 
+        masterJobs.remove(masterJobs.get(0)); 
+        break; 
       
-      if(sizeOfTooBusyElevator < elevators.get(i).serviceQueue.size()) {
-        indexOfTooBusyElevator = i; 
-        sizeOfTooBusyElevator = elevators.get(i).serviceQueue.size(); 
-        elevatorTooBusy = true; 
-        
       }
-      
-      
+    
     }
     
   }
-  
-  if(elevatorDoingNothing & elevatorTooBusy) {
-    
-   // Job removedJob = elevators.get(indexOfTooBusyElevator).serviceQueue.remove(1);
-    //elevators.get(indexOfFreeElevator).serviceQueue.add(removedJob);
-   // System.out.println("Distributed a task -------------------------------------------------------------"); 
-   
-   //if we are in this loop then we can guarantee: there is at least one elevator not doing any task
-   //and there is also one elevator with some extra tasks
-   
-   Job removedJob = elevators.get(indexOfTooBusyElevator).serviceQueue.remove(1); 
-   elevators.get(indexOfFreeElevator).serviceQueue.add(removedJob); 
-   System.out.println("Distributed a task --------------------------------------------------------"); 
-   
-    
-  }
-  
-  
-  
+ 
 }
 
-//this algorithm will be responsible for distributing the elevator tasks
-//for when one elevator is too busy and other elevators are not doing something
-void regularAlgorithmDistributeSystemTasks() {
-  int indexOfTooBusyElevator = -1; 
-  int sizeOfTooBusyElevator = -1; 
-  int indexOfFreeElevator = -1; 
+
+void distributeRegularTasks() {
   
-  boolean elevatorDoingNothing = false; 
-  boolean elevatorTooBusy = false; 
- 
-  //for each elevator
-  for(int i = 0; i < elevators.size(); i++) {
-    
-    //trying to find an elevator that is not doing anything
-    if(elevators.get(i).serviceQueue.size() == 0) {
-      elevatorDoingNothing = true; 
-      indexOfFreeElevator = i; 
-    }
-    
-    //trying to find a busy elevator
-    if(elevators.get(i).serviceQueue.size() > 1) {
+  //this will add one job to one elevator
+  //if it doesnt have a job
+  if(masterJobs.size() >= 1) {
+    for(int i = 0; i < elevators.size(); i++) {
+   
+      if(elevators.get(i).serviceQueue.size() == 0) {
+        elevators.get(i).serviceQueue.add(masterJobs.get(0)); 
+        masterJobs.remove(masterJobs.get(0)); 
+        break; 
       
-      if(sizeOfTooBusyElevator < elevators.get(i).serviceQueue.size()) {
-        indexOfTooBusyElevator = i; 
-        sizeOfTooBusyElevator = elevators.get(i).serviceQueue.size(); 
-        elevatorTooBusy = true; 
-        
       }
-      
-      
+    
     }
     
   }
-  
-  if(elevatorDoingNothing & elevatorTooBusy) {
-    
-   // Job removedJob = elevators.get(indexOfTooBusyElevator).serviceQueue.remove(1);
-    //elevators.get(indexOfFreeElevator).serviceQueue.add(removedJob);
-   // System.out.println("Distributed a task -------------------------------------------------------------"); 
-   
-   //if we are in this loop then we can guarantee: there is at least one elevator not doing any task
-   //and there is also one elevator with some extra tasks
-   
-   Job removedJob = elevators.get(indexOfTooBusyElevator).serviceQueue.remove(1); 
-   elevators.get(indexOfFreeElevator).serviceQueue.add(removedJob); 
-   System.out.println("Distributed a task --------------------------------------------------------"); 
-   
-    
-  }
-  
-  
   
   
 }
@@ -813,126 +757,188 @@ void moveElevators() {
 //this function will handle removing that person from the building, and adding them to the elevator
 void checkElevators() {
   
-  for(int i = 0; i < elevators.size(); i++) {
+  
+  //checks each elevator for the needInstruction flag
+  if(elevatorAlgorithm == 1) { 
     
-    //in this case, it will check whether or not an elevator is currently on the floor of its job
-    if(elevatorAlgorithm == 2) {
+    for(int i = 0; i < elevators.size(); i++) {
       
-      //there will only ever be one, or none job with this style of algorithm
-      if(elevators.get(i).getServiceQueue().size()>=1) {
-        if(elevators.get(i).getFloor() == elevators.get(i).getServiceQueue().get(0).getPickup()) {
-          
-           if(!elevators.get(i).doorOpening & !elevators.get(i).doorClosing & !elevators.get(i).openedDoorFloor & elevators.get(i).getDirection() != Direction.DOWN) {
-             System.out.println("setting stationary");
-             elevators.get(i).direction = Direction.STATIONARY; 
-           }
-          
-          
+      //the elevator is performing a pickup
+      if(elevators.get(i).needInstruction & !elevators.get(i).justDropped) {
+      
+          //this algorithm should only pick up the passenger if they currently dont have a passenger in the cab
+          if(elevators.get(i).getCabPassengers().size() == 0) {
+            //In this case we only pick up the one person that we are concerned with
+            int passengerID = elevators.get(i).serviceQueue.get(0).getPassengerID();
+            System.out.println("Adding a person from inside checkElevators() ALGORITHM 1 to a cab"); 
         
-        }
+            Person ourPerson = highRise.getPersonFromID(passengerID);  
+            //add this person to the appropriate elevator
+            ourPerson.flipRidingElevator(); 
+            elevators.get(i).addPassenger(ourPerson); 
+        
+            //remove this person from the building - ergo removing the job from the room as well so when they enter the elevator their room should turn back yellow, unless there is someone else still waiting
+            highRise.leaveRoom(ourPerson);
+        
+            //update the elevators job
+            elevators.get(i).getServiceQueue().get(0).setPickedUp(true);
+        
+            //update the elevators statistics
+            elevators.get(i).getElevatorStat().tickPassengerPick(); 
+        
+            //update the persons job
+            ourPerson.getJob().setPickedUp(true);
+            
+          }
+        
+            //update that the elevator doesn't need instruction anymore
+            elevators.get(i).setNeedInstruction(false);
+            elevators.get(i).specialStopFloor = false;
+            
+    
+    
+        //the elevator is performing a drop off (finished the work required opening and closing doors)
+      } else if (elevators.get(i).needInstruction & elevators.get(i).justDropped) {
+        
+          elevators.get(i).justDropped = false; 
+          elevators.get(i).needInstruction = false; 
+          elevators.get(i).getElevatorStat().tickPassengerDrop();
+          
+          highRise.peopleStatistics.add(new PeopleStat(elevators.get(i).getCabPassengers().get(0).getFramesWaitedForElevator(),elevators.get(i).getCabPassengers().get(0).getFramesSpendOnElevator()));
+          elevators.get(i).getCabPassengers().get(0).flipRidingElevator();
+          elevators.get(i).getCabPassengers().remove(0);
+          elevators.get(i).getServiceQueue().remove(0);
+          elevators.get(i).waitingInPlace = true; 
+          elevators.get(i).direction = Direction.NOTHING; 
+          elevators.get(i).doorOpeningTimer.reset();
+          elevators.get(i).doorClosingTimer.reset();
       }
-      
     }
     
-    //if the elevator algorithm is standard, and the elevator needs instruction, then you should pick up the person, anyone else on the same floor as well as
-    //set the direction to down
-    if((elevatorAlgorithm == 2) & (elevators.get(i).getNeedInstruction())) {
+  } else if (elevatorAlgorithm == 2) {
+    
+    for(int i = 0; i < elevators.size(); i++) {
       
-      //for each job that currently exists in the master list of the apartment building
-          for(int job = 0; job < highRise.masterJobs.size(); job++) {
+      //the elevator is performing a pickup
+      if(elevators.get(i).needInstruction & !elevators.get(i).justDropped) {
+      
+         
+        ArrayList<Person> waitingPeopleOnFloor = highRise.returnWaitingList(elevators.get(i).getFloor()); 
+        
+        //for each person that is waiting
+        for(int x = 0; x < waitingPeopleOnFloor.size(); x++) {
+          
+            int jobID = waitingPeopleOnFloor.get(x).getJob().getID(); 
             
-            //System.out.println("HERE");
-            int elevatorFloor = elevators.get(i).getFloor()+1; 
+            //for every other elevator
+            boolean jobAlreadyTaken = false;
             
-            //for each room on the elevators floor
-             for (int room = 0; room < highRise.getFloors().get(elevatorFloor).getRoomsList().size(); room++) {
-               
-               //for each person in the room
-                for (int population = 0; population < highRise.getFloors().get(elevatorFloor).getRoomsList().get(room).getWhoIsHome().size(); population++) {
+            int safeElevator = i; 
+            for(int y = 0; y < elevators.size(); y++) {
+              
+              if(y == safeElevator) {
+                continue; 
+              } else {
+                
+                //if this elevator has a job
+                if(elevators.get(y).getServiceQueue().size() >= 1) {
                   
-                  
-                  //make sure that this persons job does not have an id of -1 -> otherwise this would mean that they don't currently have a job
-                  if (!(highRise.getFloors().get(elevatorFloor).getRoomsList().get(room).getWhoIsHome().get(population).getJob().getID() == -1)) {
+                  if(elevators.get(y).getServiceQueue().get(0).getID() == jobID) {
                     
-                    
-                    System.out.println("adding a person to the cab"); 
-                    
-                    elevators.get(i).addPassenger(highRise.getFloors().get(elevatorFloor).getRoomsList().get(room).getWhoIsHome().get(population)); 
-                    highRise.getFloors().get(elevatorFloor).getRoomsList().get(room).getWhoIsHome().get(population).flipRidingElevator(); 
-                    
-                    Job jobIDToRemove = highRise.getFloors().get(elevatorFloor).getRoomsList().get(room).getWhoIsHome().get(population).getJob(); //the job of the persons job that is being added to the elevator cab
-                    int safeElevator = i;  //the elevator that should have this job in its queue
-                    
-                    highRise.leaveRoom(highRise.getFloors().get(elevatorFloor).getRoomsList().get(room).getWhoIsHome().get(population)); 
-                    
-                    elevators.get(i).getElevatorStat().tickPassengerPick();
-                    
-                    
-                       //^ note that above the person has already left the room and entered the cab - , so check the elevators cab for the matching job ID's in the service queue
-                    for(int cabPass = 0; cabPass < elevators.get(i).getCabPassengers().size(); cabPass++) {
-                      //for each  person in the cab, and
-                      //for each job in the service queue
-                      for(int service = 0; service < elevators.get(i).getServiceQueue().size(); service++) {
-                        
-                        if(elevators.get(i).getCabPassengers().get(cabPass).getJob().getID() == elevators.get(i).getServiceQueue().get(service).getID()) {
-                          System.out.println("This person was intended for this elevator"); 
-                          //updated the persons job
-                          elevators.get(i).getCabPassengers().get(cabPass).getJob().setPickedUp(true); 
-                          //update the elevators service queue job
-                          elevators.get(i).getServiceQueue().get(service).setPickedUp(true); 
-                        } else {
-                          System.out.println("This person was not intended for this elevator"); 
-                          
-                          //need to remove the job from the elevator that we are stealing this person from 
-                          
-                          //for each other elevator
-                          for(int y = 0; y < elevators.size(); y++) {
-                            
-                            for(int s = 0; s < elevators.get(y).getServiceQueue().size(); s++) {
-                              
-                              if(y == safeElevator) { 
-                                continue; 
-                              } else {
-                                if (jobIDToRemove.getID() == elevators.get(y).getServiceQueue().get(s).getID()) {
-                                  System.out.println("removing a job from elevator : " + y); 
-                                  
-                                  elevators.get(y).getServiceQueue().remove(jobIDToRemove); 
-                                  elevators.get(y).waitingInPlace = true;
-                                }
-                                
-                                
-                              }
-                              
-                              
-                            }
-                            
-                          }
-                          
-                        }
-                        
-                        
-                      }
-                    
+                    jobAlreadyTaken = true;
                     
                   }
                   
-                  
                 }
-               
-               
-             }
+              }
+              
+              
+            }
             
-            
-          }
-            
-          }
-          elevators.get(i).setNeedInstruction(false);
-      
-      
-    }
-    
-    
+            if(!jobAlreadyTaken) {
+          
+              waitingPeopleOnFloor.get(x).flipRidingElevator(); 
+              elevators.get(i).addPassenger(waitingPeopleOnFloor.get(x)); 
+              masterJobs.remove(waitingPeopleOnFloor.get(x).getJob()); 
+          
      
+              highRise.leaveRoom(waitingPeopleOnFloor.get(x));
+          
+            
+          
+              //update the elevators job
+              elevators.get(i).getServiceQueue().get(0).setPickedUp(true);
+        
+              //update the elevators statistics
+              elevators.get(i).getElevatorStat().tickPassengerPick(); 
+        
+              //update the persons job
+              //waitingPeopleOnFloor.get(x).getJob().setPickedUp(true);
+              
+            } else { 
+              
+              //you dont get to pick this person up, they already notice another elevators doors opening and are heading that way
+            }
+          
+          }
+        
+         //update that the elevator doesn't need instruction anymore
+            elevators.get(i).setNeedInstruction(false);
+            elevators.get(i).specialStopFloor = false;
+         
+      
+        //the elevator is performing a dropoff
+      } else if (elevators.get(i).needInstruction & elevators.get(i).justDropped) {
+        
+        System.out.println("Performing a dropoff -----------------------------------------------------------------------------------------------------------------------------------------------------------------------"); 
+        
+        //for each passenger in the cab
+        int totalSize = elevators.get(i).getCabPassengers().size();
+        for(int p = 0; p < totalSize; p++) {
+          
+          
+            
+            elevators.get(i).justDropped = false; 
+            elevators.get(i).needInstruction = false; 
+            elevators.get(i).getElevatorStat().tickPassengerDrop();
+          
+            highRise.peopleStatistics.add(new PeopleStat(elevators.get(i).getCabPassengers().get(0).getFramesWaitedForElevator(),elevators.get(i).getCabPassengers().get(0).getFramesSpendOnElevator()));
+            elevators.get(i).getCabPassengers().get(0).flipRidingElevator();
+            elevators.get(i).getServiceQueue().remove(elevators.get(i).getCabPassengers().get(0).getJob()); 
+            elevators.get(i).getCabPassengers().remove(0);
+            
+            elevators.get(i).waitingInPlace = true; 
+            elevators.get(i).direction = Direction.STATIONARY; 
+            elevators.get(i).doorOpeningTimer.reset();
+            elevators.get(i).doorClosingTimer.reset();
+            
+          
+          
+          
+        }
+        
+        
+      }
+     
+    }
+   
+    
+  
+  }
+  
+  
+  
+  
+  
+  
+  
+  
+  for(int i = 0; i < elevators.size(); i++) {
+    
+    
+  
+  
+    
     if(elevators.get(i).getNeedInstruction() || elevators.get(i).getExtraPickupAble()) {
       
       if(elevators.get(i).serviceQueue.size() >= 1) {
@@ -965,113 +971,7 @@ void checkElevators() {
           elevators.get(i).setNeedInstruction(false);
         
         //covid-19 algorithm done
-        } else if (elevatorAlgorithm == 1) {  // standard elevator algorithm
-        
-          
-          //regular elevator algorithm - if an elevator has its needInstruction set to true, this is
-          //only after it has opened and closed its door, and now needs to pick up all 
-          //Persons that are waiting on that floor
-          
-          //for each job that currently exists in the master list of the apartment building
-          for(int job = 0; job < highRise.masterJobs.size(); job++) {
-            
-            // -> we know the elevator has just opened and closed its door, so its appropriate to pick up all Persons that may be waiting
-            // on this floor, any elevator that is in this loop at this point should be picking up all passengers on the floor that it is currently on
-            if(highRise.masterJobs.get(job).getPickup() == elevators.get(i).getFloor()) {
-              
-              
-              int elevatorFloor = elevators.get(i).getFloor(); 
-              //for each person on the floor that is currently waiting for an elevator to come
-              //for each room on the same floor that the elevator is currently on
-              for (int room = 0; room < highRise.getFloors().get(elevatorFloor).getRoomsList().size(); room++) {
-                
-                //for each person in the room
-                for (int population = 0; population < highRise.getFloors().get(elevatorFloor).getRoomsList().get(room).getWhoIsHome().size(); population++) {
-                  
-                  //make sure that this persons job does not have an id of -1 -> otherwise this would mean that they don't currently have a job
-                  if (!(highRise.getFloors().get(elevatorFloor).getRoomsList().get(room).getWhoIsHome().get(population).getJob().getID() == -1)) {
-                    
-                    System.out.println("Adding a person to the cab"); 
-                    
-                    elevators.get(i).addPassenger(highRise.getFloors().get(elevatorFloor).getRoomsList().get(room).getWhoIsHome().get(population)); 
-                    highRise.getFloors().get(elevatorFloor).getRoomsList().get(room).getWhoIsHome().get(population).flipRidingElevator(); 
-                    
-                    Job jobIDToRemove = highRise.getFloors().get(elevatorFloor).getRoomsList().get(room).getWhoIsHome().get(population).getJob(); //the job of the persons job that is being added to the elevator cab
-                    int safeElevator = i;  //the elevator that should have this job in its queue
-                    
-                    highRise.leaveRoom(highRise.getFloors().get(elevatorFloor).getRoomsList().get(room).getWhoIsHome().get(population)); 
-                    
-                    elevators.get(i).getElevatorStat().tickPassengerPick();
-                    //need to check whether or not this elevator already had this persons job in in its service queue
-                    
-                    //^ note that above the person has already left the room and entered the cab - , so check the elevators cab for the matching job ID's in the service queue
-                    for(int cabPass = 0; cabPass < elevators.get(i).getCabPassengers().size(); cabPass++) {
-                      //for each  person in the cab, and
-                      //for each job in the service queue
-                      for(int service = 0; service < elevators.get(i).getServiceQueue().size(); service++) {
-                        
-                        if(elevators.get(i).getCabPassengers().get(cabPass).getJob().getID() == elevators.get(i).getServiceQueue().get(service).getID()) {
-                          System.out.println("This person was intended for this elevator"); 
-                          //updated the persons job
-                          elevators.get(i).getCabPassengers().get(cabPass).getJob().setPickedUp(true); 
-                          //update the elevators service queue job
-                          elevators.get(i).getServiceQueue().get(service).setPickedUp(true); 
-                        } else {
-                          System.out.println("This person was not intended for this elevator"); 
-                          
-                          //need to remove the job from the elevator that we are stealing this person from 
-                          
-                          //for each other elevator
-                          for(int y = 0; y < elevators.size(); y++) {
-                            
-                            for(int s = 0; s < elevators.get(y).getServiceQueue().size(); s++) {
-                              
-                              if(y == safeElevator) { 
-                                continue; 
-                              } else {
-                                if (jobIDToRemove.getID() == elevators.get(y).getServiceQueue().get(s).getID()) {
-                                  System.out.println("removing a job from elevator : " + y); 
-                                  
-                                  elevators.get(y).getServiceQueue().remove(jobIDToRemove); 
-                                }
-                                
-                                
-                              }
-                              
-                              
-                            }
-                            
-                          }
-                          
-                        }
-                        
-                        
-                      }
-                      
-                      
-                    }
-                   
-                 
-                 
-                 
-                    
-                  }
-                  
-                  
-                }
-                
-                
-              }
-              
-              
-            }
-            
-          }
-          
-         elevators.get(i).setNeedInstruction(false);  
-          
-      
-        } // standard elevator algorithm done
+        } 
       }  
     }
   } // for each elevator done 
@@ -1081,98 +981,27 @@ void checkElevators() {
 
 void checkElevatorExpulsion() {
   
-  for(int i = 0; i < elevators.size(); i++) {
-    
-    //there exists a job that the elevator is doing
-    if(elevators.get(i).serviceQueue.size() >= 1) {
-      
-      //check to see if the elevators job has been fulfilled, that it has the person in its cabin, and that the current floor is the destination floor
-      
-      
-      
-      
-    }
-    
-    
-  }
-  
+ 
   
   
 }
 
+
+//this function is responsible for resetting the bearings of an elevator
+//that has stopped to open its doors BUT in the meantime another elevators has already finished
+//closing its doors and picked up this passenger
+
+
 void checkStuckElevators() {
   
-  for(int i = 0; i < elevators.size(); i++) {
-    
-    //if the doors are not currently opening
-    if(  !elevators.get(i).doorOpening &  !elevators.get(i).doorClosing  ) {
-      
-      
-      //if the elevator is still
-      if(elevators.get(i).getDirection() == Direction.STATIONARY) {
-        
-        if(elevators.get(i).getServiceQueue().size() == 0) {
-          
-          if(elevators.get(i).getCabPassengers().size() == 0) {
-            
-            if(elevators.get(i).getFloor() > 1) {
-              
-              elevators.get(i).setDestination(0); 
-              elevators.get(i).direction = Direction.DOWN; 
-              
-            }
-            
-            
-          }
-          
-        }
-        
-      }
-      
-    }
-    
-    
-  }
   
   
 }
 
 void checkElevator2ExtraPickups() {
   
-  for(int i = 0; i < elevators.size(); i++) {
-    
-    int elevatorFloor = elevators.get(i).getFloor()+1; 
-    
-    //for each room on the elevators floor
-    
-    for(int room = 0; room < highRise.getFloors().get(elevatorFloor).getRoomsList().size(); room++) {
-      
-      
-      //for each person in the room
-      for (int population = 0; population < highRise.getFloors().get(elevatorFloor).getRoomsList().get(room).getWhoIsHome().size(); population++) {
-        
-        
-        //if the person actually has a job
-        if (!(highRise.getFloors().get(elevatorFloor).getRoomsList().get(room).getWhoIsHome().get(population).getJob().getID() == -1)) {
-          
-          
-          elevators.get(i).specialDoorStop = true;
-          
-          
-          
-        }
-        
-        
-      }
-      
-      
-      
-    }
-    
-    
-  }
   
-  
+ 
 }
 
 void drawSimulationTimer() {
@@ -1551,6 +1380,12 @@ void drawElevatorTextInfo() {
       
     } else if (elevators.get(i).getDirection() == Direction.DOWN) {
       text("down", 1050, 30+i*37);
+      
+    } else if (elevators.get(i).getDirection() == Direction.OPEN) {
+      text("open", 1050, 30+i*37); 
+    
+    } else if (elevators.get(i).getDirection() == Direction.CLOSE) {
+      text("close", 1050, 30+i*37);
       
     }
     

@@ -31,6 +31,8 @@ class StopWatch {
   boolean tickTime() {
     boolean returnValue = false;
     
+    System.out.println("ticking time"); 
+    
     elapsedTime++; 
     if(elapsedTime >= totalTime) {
       returnValue = true; 
@@ -38,6 +40,13 @@ class StopWatch {
     
     return returnValue;
     
+    
+  }
+  
+  void reset() {
+    startTime = 0; 
+    elapsedTime = 0; 
+    totalTime = 0; 
     
   }
   

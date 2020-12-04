@@ -36,6 +36,7 @@ public static void main(String[] args) {
 	  
 	  int maximumPauseTime = Integer.parseInt(args[5]); 
 	  
+	  System.out.println(maximumPauseTime);
 	  
 	  if(numFloors > 30) { 
 		  System.out.println("Floors too high"); 
@@ -112,6 +113,7 @@ public static void main(String[] args) {
 				
 				//determine the wait time
 				int waitTime = rand.nextInt(maximumPauseTime-minimumPauseTime) + minimumPauseTime;
+				waitTime = waitTime*15; 
 				
 				//write to the file
 				try {

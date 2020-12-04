@@ -24,6 +24,8 @@ class Elevator {
   int elevatorShaftHeight = 0; 
   int elevatorShaftWidth = 0; 
   
+  int floorFrames = 0; 
+  
   //speed of elevator
   float floorsPerSecond = 0.0;
   
@@ -69,6 +71,7 @@ class Elevator {
   boolean justDropped = false; 
   boolean extraStop = false; 
   boolean multiDoorIssue = false; 
+  boolean doneOnFloor = false;
   
   boolean justExpelled = false; 
   boolean waitingInPlace = false; 
@@ -76,7 +79,7 @@ class Elevator {
   boolean specialDoorStop = false;
   boolean specialStopFloor = false;
   
-  
+  boolean checkedForExtraStop = false; 
   boolean openedDoorFloor = false; 
   
   boolean needInstruction = false; 
@@ -106,7 +109,7 @@ class Elevator {
     cabPosY = cabPositionY;
     cabPos2X = cabPositionX; 
     originalCabPosX = cabPositionX; 
-    
+    direction = Direction.STATIONARY;
   }
   
   //getters and setters start
@@ -221,6 +224,8 @@ class Elevator {
   //draw the cab representing the elevator
   void drawCab() {
     
+    System.out.println("Drawing cab: " + doorOpening + " " + doorClosing); 
+    
     if(doorOpening) { //door is in the process of opening
       
        rectMode(CENTER); 
@@ -322,6 +327,9 @@ class Elevator {
       openedDoorFloor = false;  
       //specialDoorStop = false;
       specialStopFloor = false;
+      
+      doneOnFloor = false;
+      checkedForExtraStop = false;
     }
     
     
@@ -476,6 +484,7 @@ class Elevator {
             } else { 
         
               System.out.println("Calling openDoor(int frameRate);");
+             
               openDoor(frameRate);
           
             }
@@ -526,330 +535,229 @@ class Elevator {
       
     } else if (elevatorAlgorithm == 1) {
       
-      //System.out.println("moving"); 
+      //set the current destination
+      //----------------------------
       
-      
-      //if the elevator is currently stationary, then the elevators destination needs to be updated
-      if((direction == Direction.STATIONARY & (!doorOpening) & (!doorClosing)) || multiDoorIssue) {
-        //if there is actually a job
-        multiDoorIssue = false;
-        if(serviceQueue.size() >= 1) {
-          //if the first job in the service queue has not been accepted yet set that jobs pickup location as the destination
-          if(serviceQueue.get(0).getPickedUp() == false) {
-            System.out.println("Setting destination: floor from a pickup " + serviceQueue.get(0).getPickup()); 
-            currentDestination = serviceQueue.get(0).getPickup();
-            
-          } else if (serviceQueue.get(0).getPickedUp() == true) { //if the first job in the service queue has been accepted, then set that jobs destination location as the destination
-            System.out.println("Setting destination: floor  from a drop off " + serviceQueue.get(0).getDestination()); 
-            currentDestination = serviceQueue.get(0).getDestination(); 
-            
-            
-            
-          }
+      //if the elevator has a job
+      if(serviceQueue.size() >= 1) {
+        waitingInPlace = false; 
+        //if the job has been picked up
+        if(serviceQueue.get(0).pickedUp) {
+          
+          currentDestination = serviceQueue.get(0).getDestination(); 
+          
+        } else { //job has not been picked up
+        
+          currentDestination = serviceQueue.get(0).getPickup();
+          
         }
+        
+        
       }
       
-      
-      //if the current destination is larger than the current floor
-      if(currentDestination > floor) {
-        moveUp();
-     
-      } else if( currentDestination == floor ) {
-        //this elevator has reached its destination and needs to do something with its door
+      //finish setting the current destination 
+      //------------------------------
+
+
+
+      //determine the correct movement function to call
+      //-----------------------------
+      if(serviceQueue.size() >= 1) {
+      if(currentDestination > floor & !specialStopFloor) {
+        moveUp(); 
         
-        
-        
-        //if the door is not already opening & the door is not already closing -> then you need to open the door
-        if(doorOpening == false & doorClosing == false) {
-          
-          if(currentDestination != -1) { 
-            if(openedDoorFloor == false) {
-              openDoor(frameRate); 
-            } else {
-              System.out.println("you already opened your door on this floor, give it up"); 
-              currentDestination = 0; 
-              multiDoorIssue = true; 
-            }
-        }
-        }
-        
-        //System.out.println("Door opening: " + doorOpening); 
-        //if the door is opening, need to tick the stopwatch 
-        if(doorOpening == true) {
-          
-          //System.out.println("Ticking door"); 
-          boolean openingAnimationDone = false; 
-          openingAnimationDone = doorOpeningTimer.tickTime();
-        
-          if(openingAnimationDone) { 
-            closeDoor(); 
-          } 
-        }
-        
-        
-        //if the door is closing, need to tick the stopwatch
-        if(doorClosing == true) {
-          
-          boolean closingAnimationDone = false; 
-          closingAnimationDone = doorClosingTimer.tickTime();
-          
-          if(closingAnimationDone) {
-            
-            if(serviceQueue.size() == 0) {
-              //currentDestination = -1; 
-              currentDestination = 0; 
-            }
-            
-            direction = Direction.STATIONARY;
-            needInstruction = true;
-            doorClosing = false; 
-            doorOpening = false; 
-          }
-        } 
-        
-        //
-      } else if (currentDestination < floor & (floor >= 2)) {
-        //System.out.println("Should be moving down"); 
+      } else if (currentDestination < floor & !specialStopFloor) {
         moveDown();
         
+      } else if (currentDestination == floor || specialStopFloor) {
+        
+       
+        if( (!doorOpening & !doorClosing & !openedDoorFloor & !waitingInPlace)) {
+          System.out.println("calling open door");
+          openDoor(frameRate);  
+          
+          if(specialStopFloor) { currentDestination = floor; }
+          
+          
+          //specialStopFloor = false;
+          
+        }
+        
+        //System.out.println(doorOpening);
+        
+        if(doorOpening) {
+          boolean status = doorOpeningTimer.tickTime(); 
+          
+          if(status) { //the door is done opening
+            
+            closeDoor(); 
+            
+          }
+          
+        }
+        
+        
+        if(doorClosing) {
+          boolean status = doorClosingTimer.tickTime();
+          
+          
+          if(serviceQueue.size() >= 1) {
+            if(status) { //the door is done closing
+            
+            
+            
+              if(serviceQueue.get(0).pickedUp & floor == currentDestination) {
+                serviceQueue.get(0).droppedOff = true; 
+                justDropped = true;
+                needInstruction = true; 
+                doorClosing = false;
+              
+              } else {
+            
+            
+                currentDestination = serviceQueue.get(0).getDestination(); 
+                serviceQueue.get(0).pickedUp = true; 
+                needInstruction = true; 
+                doorClosing = false; 
+              
+              
+              }
+            }
+          
+          
+          }
+        }
+        
+        
+        
+        
         
       }
+      }
+      //finish correct movement function call
+      //----------------------------
+      
+
+
+
       
      
     } else if (elevatorAlgorithm == 2) {
       
-      if (justExpelled) { direction = Direction.STATIONARY; }
-      if (serviceQueue.size() == 0) {
-         direction = Direction.STATIONARY;
-      }
-      
-      if((serviceQueue.size() >= 1) & (direction == Direction.STATIONARY) & (floor == 1)) {
-        currentDestination = serviceQueue.get(0).getPickup();
-        direction = Direction.UP; 
-      }
-      
-      if((serviceQueue.size() >= 1) & (direction == Direction.DOWN) & (floor == 1)) {
-        currentDestination = serviceQueue.get(0).getPickup();
-        direction = Direction.UP; 
-      }
-      
-      if((serviceQueue.size() >=1) & (direction == Direction.STATIONARY) & (floor > 1)) {
-        if(serviceQueue.get(0).pickedUp) {
-          direction = Direction.DOWN; 
-        } else {
-          
-        }
-      
-      }
-      
-      if((serviceQueue.size() >=1) & (direction == Direction.UP) & (floor == 0)) {
-        currentDestination = serviceQueue.get(0).getPickup(); 
-        
-      }
-      
      
+      //
       
-      if(serviceQueue.size() == 0) {
-        
-        
-      }
       
-      //if(currentDestination > floor) { direction = Direction.UP; }
       
-      if ((direction == Direction.STATIONARY) & (!doorOpening) & (!doorClosing)) {
-        
-        if(serviceQueue.size() >= 1) {
-          
-          if(floor < currentDestination) {
-            direction = Direction.UP; 
-          } else if (floor > currentDestination){
-            direction = Direction.DOWN;
-          }
-          
-        }
-        
-      }
+      //set the current destination
+      //----------------------------
       
+      //if the elevator has a job
       if(serviceQueue.size() >= 1) {
-        
-        if(floor == serviceQueue.get(0).getDestination() & serviceQueue.get(0).pickedUp) {
-          direction = Direction.STATIONARY;
-          
-        }
-      }
-      
-      
-      //if(specialDoorStop) {
-       // direction = Direction.STATIONARY; 
-        //specialDoorStop = false;
-      //}
-      
-      //System.out.println(direction + " " + serviceQueue.size() + " ");
-      
-      
-      if(direction == Direction.DOWN) {
-        
-        if(cabPassengers.size() >= 1) {
-          
+        waitingInPlace = false; 
+        //if the job has been picked up
+        if(serviceQueue.get(0).pickedUp) {
+          System.out.println("Job has already been picked up");
           currentDestination = serviceQueue.get(0).getDestination(); 
           
+        } else { //job has not been picked up
+          System.out.println("Job has not been picked up"); 
+          currentDestination = serviceQueue.get(0).getPickup();
           
         }
         
         
       }
       
-      //System.out.println("right before moving: " + direction + " " + specialDoorStop + " " + serviceQueue.size() + " " + currentDestination);
-      
-      //if the door is not opening and closing
-      if(!doorOpening & !doorClosing) {
-        
-        //System.out.println("current elevator queue size: " + serviceQueue.size()); 
-         
-        
-        //if there is a job
-        if(serviceQueue.size() >= 1) {
-          
-          //System.out.println("current pickup up status of the job: " + serviceQueue.get(0).getPickedUp()); 
-        
-          if(serviceQueue.get(0).getPickedUp()) {
-           
-            if(floor == serviceQueue.get(0).getDestination() & !specialStopFloor) {
-              
-              System.out.println("setting special door stop to true");
-              specialDoorStop = true; 
-              specialStopFloor = true;
-            }
-            
-          } else {
-            
-            if(floor == serviceQueue.get(0).getPickup()-1 & !specialStopFloor) {
-              
-              System.out.println("setting special door stop to true");
-              specialDoorStop = true;
-              specialStopFloor = true;
-              
-            }
-            
-            
-          }
-          
-        }
-        
-      }
-      
-      
-      if (direction == Direction.DOWN & !specialDoorStop) {
-        if(serviceQueue.size() >= 1) { 
-          currentDestination = serviceQueue.get(0).getDestination(); 
-          
-          if(floor == currentDestination & serviceQueue.get(0).pickedUp) {
-            direction = Direction.STATIONARY; 
-            
-            //openDoor(frameRate); 
-          }
-      
-        //fixes elevators stuck at bottom
-         } else {
-           direction = Direction.STATIONARY; 
-         }
-        moveDown();
-        
-      } else if (direction == Direction.UP & !specialDoorStop) {
-        if(serviceQueue.size() >= 1) { 
-          currentDestination = serviceQueue.get(0).getPickup(); 
-          
-          if(floor == currentDestination & !serviceQueue.get(0).pickedUp) {
-            direction = Direction.STATIONARY; 
-            //openDoor(frameRate); 
-          }
-          
-        }
+      //finish setting the current destination 
+      //------------------------------
+
+
+
+      //determine the correct movement function to call
+      //-----------------------------
+      if(serviceQueue.size() >= 1) {
+      if(currentDestination > floor & !specialStopFloor) {
         moveUp(); 
         
-      } else if ( direction == Direction.STATIONARY || justExpelled || specialDoorStop) {
+      } else if (currentDestination < floor & !specialStopFloor) {
+        moveDown();
         
-      // if(specialDoorStop) { System.out.println("special door stop has been set to true"); }
+      } else if (currentDestination == floor || specialStopFloor) {
         
-        
-        if(serviceQueue.size() >= 1) {
-          //if an elevator is stationary, it is 1. opening/closing its door, 2. sitting at floor 1 with no task, 3. NEEDS TO OPEN ITS DOORS -> to pick up a passenger or to let a passenger go
+       
+        if( (!doorOpening & !doorClosing & !openedDoorFloor & !waitingInPlace)) {
+          System.out.println("calling open door");
+          openDoor(frameRate);  
           
-          //if the elevator is performing a pickup
-          if(floor == serviceQueue.get(0).getPickup() & !doorOpening & !doorClosing & !specialDoorStop) {
+          if(specialStopFloor) { currentDestination = floor; }
+          
+          
+          //specialStopFloor = false;
+          
+        }
+        
+        //System.out.println(doorOpening);
+        
+        if(doorOpening) {
+          boolean status = doorOpeningTimer.tickTime(); 
+          
+          if(status) { //the door is done opening
             
-            System.out.println("need a pickup"); 
-            if(openedDoorFloor == false) {
-               System.out.println("calling open door to pick up a passenger, because someone was just picked up"); 
-              openDoor(frameRate);
-            }
-            
-            
-          } else if (specialDoorStop) {
-            if(openedDoorFloor == false) {
-               System.out.println("calling open door to pick up a passenger, because someone was just picked up"); 
-               
-              openDoor(frameRate);
-            }
+            closeDoor(); 
             
           }
           
-          
-            
-            
-          } else if (justExpelled) {
-            if(openedDoorFloor == false) {
-               System.out.println("calling open door to pick up a passenger because someone was just expelled"); 
-              openDoor(frameRate);
-            }
-            
-          }
-          
-          
-          
-          
-          
+        }
         
         
         if(doorClosing) {
-          boolean closingAnimationDone = false; 
-          closingAnimationDone = doorClosingTimer.tickTime(); 
+          boolean status = doorClosingTimer.tickTime();
           
-          if(closingAnimationDone) {
+          
+          if(serviceQueue.size() >= 1) {
+            if(status) { //the door is done closing
             
-            needInstruction = true;
-            direction = Direction.DOWN;
-            doorClosing = false; 
-            doorOpening = false;
-            System.out.println("setting special door stop to false");
-            specialDoorStop = false;
-            cabPosX = cabPosX + sidewaysDoorSpeed; 
-          }
+            
+            
+              if(serviceQueue.get(0).pickedUp & floor == currentDestination) {
+                serviceQueue.get(0).droppedOff = true; 
+                justDropped = true;
+                needInstruction = true; 
+                doorClosing = false;
+              
+              } else {
+            
+            
+                currentDestination = serviceQueue.get(0).getDestination(); 
+                serviceQueue.get(0).pickedUp = true; 
+                needInstruction = true; 
+                doorClosing = false; 
+              
+              
+              }
+            }
           
+          
+          }
         }
         
-        if(doorOpening) {
-          
-          boolean openingAnimationDone = false; 
-          openingAnimationDone = doorOpeningTimer.tickTime(); 
-          
-          if(openingAnimationDone) {
-            closeDoor();
-          }
-          
-        }
         
         
         
-      } 
+        
+      }
+      }
+      //finish correct movement function call
+      //----------------------------
+      
+
+
       
       
       
       
-      
-      
-      
-    }
+    }  //until here
     
   
   }
@@ -871,11 +779,15 @@ class Elevator {
     
     direction = Direction.STATIONARY; 
     
+    if(elevatorAlgorithm == 2) {
+      //direction = Direction.OPEN; 
+    }
+    
     //calculate how many frames the timer should go on for 
     int totalDoorTime = doorTime*frameRate; 
     doorAnimationTime = totalDoorTime; 
     
- 
+    if(elevatorAlgorithm == 2) { justDropped = false; }
     doorOpening = true;
     doorClosing = false;
     doorOpeningTimer = new StopWatch(0,0,totalDoorTime,"doorOpening");
@@ -895,7 +807,7 @@ class Elevator {
     
     doorOpening = false; 
     doorClosing = true; 
-    
+    //if(elevatorAlgorithm == 2) { justDropped = false; }
     
     doorClosingTimer = new StopWatch(0,0,doorAnimationTime,"doorClosing");
     

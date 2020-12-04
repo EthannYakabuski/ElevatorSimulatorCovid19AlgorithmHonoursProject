@@ -1,5 +1,8 @@
 enum Direction { 
    STATIONARY, 
    UP, 
-   DOWN
+   DOWN,
+   OPEN,
+   CLOSE,
+   NOTHING
 }
